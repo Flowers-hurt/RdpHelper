@@ -1,8 +1,8 @@
 bin/
 obj/
-publish/
-dist/
-screenshots/
+/publish/
+/dist/
+/screenshots/
 selftest.json
 *.user
 .vs/
