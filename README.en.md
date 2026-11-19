@@ -42,7 +42,7 @@ The installer ships **no tunneling binaries**; they are fetched from their offic
 | | Custom / random port, restore 3389 | `PortNumber` → firewall (TCP+UDP) → safe service restart |
 | | LAN IP list | Ethernet / Wi-Fi detection, virtual adapters flagged |
 | | Copy connection info | Computer name, user, LAN / public address, how-to (**no password**) |
-| 🐚 **SSH** | Install OpenSSH Server | Windows optional feature, falls back to the official Win32-OpenSSH MSI |
+| 🐚 **SSH** | Install OpenSSH Server | The official Win32-OpenSSH MSI is **bundled** (offline, seconds); falls back to the Windows optional feature / online download; progress bar + log that survive page switches |
 | | Start / stop sshd | Sets auto-start and firewall |
 | | Custom port / restore 22 | Rewrites `Port` in `sshd_config`, restarts sshd |
 | 🛡️ **Access control** | IP allow list | Empty = allow all; otherwise only listed sources |
@@ -77,14 +77,14 @@ Grab the latest build from [**Releases**](https://github.com/Flowers-hurt/RdpHel
 | `RdpHelper-Setup-x.y.z-x64.exe` | Installer; uninstall removes the app's firewall rules |
 | `RdpHelper-x.y.z-portable-x64.zip` | Portable single exe |
 
-Both are self-contained (~60 MB), no .NET runtime required. Administrator rights are required (UAC prompt).
+Both are self-contained (~60 MB), no .NET runtime required, and bundle the official Win32-OpenSSH MSI (`redist\`, ~7 MB, license included) for offline SSH server installs. Tunnel clients are still downloaded on demand. Administrator rights are required (UAC prompt).
 
 ### 🧰 Requirements
 
 | Item | Requirement |
 | :-- | :-- |
 | OS | Windows 10 1809+ / Windows 11 / Windows Server 2019+ (x64) |
-| Edition | The host must be **Pro / Enterprise / Education / Server** — Home has no RDP host (SSH works) |
+| Edition | The host must be **Pro / Enterprise / Education / Server** — Home has no RDP host (SSH works). On Home the app offers a legitimate upgrade to Pro: Microsoft Store, your own Pro key via `changepk.exe`, or the generic Pro key for PCs with a Pro digital license |
 | Glass effect | Windows 11 22H2 (build 22621) or later; otherwise falls back to solid |
 
 ## 🔬 How it works

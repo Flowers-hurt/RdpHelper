@@ -125,11 +125,11 @@ public static class GuiSelfTest
                 installButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); // 真实按钮路径
             else
                 _ = SshInstaller.RunAsync(force: true); // 卸载没成功时退化为强制重装，仍可验证切页
-            await Settle(1200);
+            await Settle(500);
             window.NavigateTo(typeof(RemotePage));
-            await Settle(1500);
+            await Settle(800);
             window.NavigateTo(typeof(SshPage));
-            await Settle(1000);
+            await Settle(700);
             var second = Find<SshPage>(window);
             var bar = (System.Windows.Controls.ProgressBar?)second?.FindName("InstallProgress");
             var desc = (System.Windows.Controls.TextBlock?)second?.FindName("InstallDesc");

@@ -71,7 +71,7 @@ jobs:
         run: |
           $fail = 0
           $runs = @(
-            @{ lang = 'zh'; dir = 'screenshots';      env = @{ RDPHELPER_GUI_INSTALLTEST = '1' } },
+            @{ lang = 'zh'; dir = 'screenshots';      env = @{ RDPHELPER_GUI_INSTALLTEST = '1'; RDPHELPER_TEST_INSTALL_DELAY_MS = '6000' } },
             @{ lang = 'en'; dir = 'screenshots\en';   env = @{} },
             @{ lang = 'zh'; dir = 'screenshots\home'; env = @{ RDPHELPER_FAKE_HOME = '1'; RDPHELPER_GUI_PAGES = 'remote' } },
             @{ lang = 'en'; dir = 'screenshots\home-en'; env = @{ RDPHELPER_FAKE_HOME = '1'; RDPHELPER_GUI_PAGES = 'remote' } }

@@ -45,7 +45,7 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 | | 自定义端口 / 随机端口 / 恢复 3389 | 写 `PortNumber` → 更新防火墙（TCP+UDP）→ 安全重启服务 |
 | | 显示局域网 IP | 自动识别以太网 / Wi-Fi，标记虚拟网卡与推荐地址 |
 | | 一键复制远程信息 | 计算机名、用户名、局域网 / 公网地址、连接方法（**不含密码**） |
-| 🐚 **SSH** | 一键安装 OpenSSH 服务器 | 优先「Windows 可选功能」，失败自动回退微软官方 Win32-OpenSSH MSI |
+| 🐚 **SSH** | 一键安装 OpenSSH 服务器 | **安装包自带**微软官方 Win32-OpenSSH，离线十几秒装好；失败再走「Windows 可选功能」/ 在线下载；进度条 + 安装日志，切换页面不丢进度 |
 | | 开启 / 关闭 sshd | 同时设置开机自启与防火墙 |
 | | 自定义端口 / 恢复 22 | 改写 `sshd_config` 的 `Port` 并重启 sshd |
 | 🛡️ **访问控制** | IP 白名单 | 留空 = 允许所有；填写后仅名单内可连 |
@@ -119,7 +119,7 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 | `RdpHelper-Setup-x.y.z-x64.exe` | 大多数用户 | 安装版，创建开始菜单 / 桌面快捷方式，卸载时自动清理本程序的防火墙规则 |
 | `RdpHelper-x.y.z-portable-x64.zip` | U 盘 / 临时使用 | 绿色版，解压即用 |
 
-两者都是 **自包含单文件**（约 60 MB），无需安装 .NET 运行时。程序需要管理员权限（修改注册表、防火墙、系统服务），启动时会弹出 UAC 提示。
+两者都是 **自包含**（约 60 MB），无需安装 .NET 运行时，并自带微软官方 Win32-OpenSSH 安装包（`redist\`，约 7 MB，附许可证）用于离线安装 SSH 服务器；内网穿透组件仍按需下载、不打包。程序需要管理员权限（修改注册表、防火墙、系统服务），启动时会弹出 UAC 提示。
 
 ### 🧰 系统要求
 
@@ -246,7 +246,18 @@ flowchart TD
 
 ### SSH
 
-- **安装**：`Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0`；如果系统禁用了 Windows Update 或处于离线环境，自动改为从 [PowerShell/Win32-OpenSSH](https://github.com/PowerShell/Win32-OpenSSH/releases) 下载官方 MSI 静默安装。
+- **安装**：按顺序尝试，进度状态保存在后台服务里，切换页面不会中断或丢失：
+
+```mermaid
+flowchart LR
+    A[一键安装] --> B{"自带 MSI<br/>redist\OpenSSH-Win64-*.msi"}
+    B -- 成功 --> OK[启动 sshd + 防火墙]
+    B -- 失败/缺失 --> C{"Windows 可选功能<br/>DISM 显示百分比"}
+    C -- 成功 --> OK
+    C -- 失败 --> D{"在线下载官方 MSI<br/>显示已下载 MB"}
+    D -- 成功 --> OK
+    D -- 失败 --> X[提示失败 + 安装日志]
+```
 - **端口**：删除 `%ProgramData%\ssh\sshd_config` 中所有生效的 `Port` 行，在原 `#Port 22` 注释后写入新值，重启 `sshd`。
 
 ## 🌐 内网穿透
@@ -293,9 +304,10 @@ cloudflared access rdp --hostname xxx.trycloudflare.com --url rdp://localhost:13
 | :-- | :-- |
 | 远程桌面 | 开启 → 3389 监听 → 防火墙规则接管 → **RDP 协议握手**（X.224 Connection Confirm）→ NLA 往返 → 改端口 13389 → 握手 → 恢复 3389 → 关闭 |
 | 访问控制 | 白名单 / 黑名单写入防火墙并回读 `RemoteAddress`；清空后恢复 `Any`；地址格式校验 |
-| SSH | 开启 → **SSH banner 握手** → 改端口 22022 → 握手 → 恢复 22；`sshd_config` 改写单元测试 |
+| SSH | **用自带 MSI 真实安装**（校验 sshd 来自 `Program Files\OpenSSH`）→ 开启 → **SSH banner 握手** → 改端口 22022 → 握手 → 恢复 22；`sshd_config` 改写单元测试 |
 | 内网穿透 | 下载 cloudflared / ngrok / bore 并验证版本；**bore 与 Cloudflare 公网端到端 RDP 握手**；退出后无残留进程 |
-| 其它 | 局域网 IP 识别、远程信息生成、剪贴板读写 |
+| 其它 | 局域网 IP 识别、远程信息生成、剪贴板读写、专业版密钥格式校验 |
+| 安装进度 | 卸载 OpenSSH → 在 SSH 页点「一键安装」→ 切到别的页面再切回 → 新页面仍显示进度条与阶段 → 装完自动启动、卡片收起 |
 | 界面 / 多语言 | 5 个页面 × 浅 / 深色 × 中 / 英 2 倍截图；英文界面可视树无残留中文、无缺失译文；实测设置页切换语言；`tools/check_i18n.py` 静态检查译文覆盖与占位符 |
 
 ## 🛠️ 从源码构建
@@ -342,7 +354,13 @@ RdpHelper/
 <details>
 <summary><b>家庭版能用吗？</b></summary>
 
-Windows 家庭版没有远程桌面 **服务端**（只能去连别人，不能被连）。程序会提示并禁用开关，SSH 功能可正常使用。
+Windows 家庭版没有远程桌面 **服务端**（只能去连别人，不能被连），SSH 功能可正常使用。程序在家庭版上会显示「升级到 Windows 专业版」卡片，只提供正规途径：
+
+- **在微软商店购买升级**（打开商店的专业版升级页）；
+- **已有专业版密钥**：输入后调用系统自带 `changepk.exe` 就地升级，保留文件和软件，完成后自动重启；
+- **以前激活过专业版**（数字许可证）：用微软公开的专业版通用密钥切换版本，联网后自动激活；没有许可证则显示未激活。
+
+不提供任何绕过激活的方法。
 
 </details>
 

@@ -66,6 +66,9 @@ public static partial class SshInstaller
             if (BundledMsi is { } msi)
             {
                 Set(L.F("正在用自带安装包安装 OpenSSH（{0}）…", Path.GetFileName(msi)), -1);
+                // 仅供界面自检：让安装持续足够久，以验证「切页回来进度仍在」（正常使用不设置）
+                if (int.TryParse(Environment.GetEnvironmentVariable("RDPHELPER_TEST_INSTALL_DELAY_MS"), out var delay) && delay > 0)
+                    await Task.Delay(Math.Min(delay, 30_000));
                 if (await InstallMsiAsync(msi)) { Set(L.T("安装完成"), 1); return; }
                 Write(L.T("自带安装包安装失败，改用 Windows 可选功能"));
             }
