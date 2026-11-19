@@ -16,7 +16,7 @@ Windows 11 Settings look · Acrylic glass · Single self-contained exe
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20%7C%20Server-0078D6?style=flat-square&logo=windows&logoColor=white)](#-requirements)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF-UI](https://img.shields.io/badge/UI-WPF--UI%20Fluent-5C2D91?style=flat-square)](https://github.com/lepoco/wpfui)
-[![Self-test](https://img.shields.io/badge/self--test-27%20passed-brightgreen?style=flat-square)](#-automated-testing)
+[![Self-test](https://img.shields.io/badge/self--test-28%20passed-brightgreen?style=flat-square)](#-automated-testing)
 
 [简体中文](README.md) | **English**
 
@@ -67,6 +67,8 @@ The installer ships **no tunneling binaries**; they are fetched from their offic
 | <img src="docs/screenshots/en/ssh-dark.png" /> | <img src="docs/screenshots/en/tunnel-light.png" /> |
 | **Settings** | **Remote Desktop (light)** |
 | <img src="docs/screenshots/en/settings-dark.png" /> | <img src="docs/screenshots/en/remote-light.png" /> |
+| **Installing OpenSSH (progress kept across pages)** | **Home edition: upgrade to Pro (simulated on CI)** |
+| <img src="docs/screenshots/ssh-installing.png" /> | <img src="docs/screenshots/en/home-remote-dark.png" /> |
 
 ## 📦 Download
 

@@ -16,7 +16,7 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20%7C%20Server-0078D6?style=flat-square&logo=windows&logoColor=white)](#-系统要求)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF-UI](https://img.shields.io/badge/UI-WPF--UI%20Fluent-5C2D91?style=flat-square)](https://github.com/lepoco/wpfui)
-[![Self-test](https://img.shields.io/badge/self--test-27%20passed-brightgreen?style=flat-square)](#-自动化测试)
+[![Self-test](https://img.shields.io/badge/self--test-28%20passed-brightgreen?style=flat-square)](#-自动化测试)
 [![Stars](https://img.shields.io/github/stars/Flowers-hurt/RdpHelper?style=flat-square&logo=github)](https://github.com/Flowers-hurt/RdpHelper/stargazers)
 
 **简体中文** | [English](README.en.md)
@@ -97,6 +97,15 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 | :-: | :-: |
 | <img src="docs/screenshots/ssh-light.png" /> | <img src="docs/screenshots/access-dark.png" /> |
 | <img src="docs/screenshots/tunnel-dark.png" /> | <img src="docs/screenshots/settings-light.png" /> |
+
+</details>
+
+<details>
+<summary>安装 OpenSSH 进度 / 家庭版升级卡片</summary>
+
+| 安装中（切到别的页面再切回，进度仍在） | 家庭版：升级到专业版（CI 用环境变量模拟家庭版渲染） |
+| :-: | :-: |
+| <img src="docs/screenshots/ssh-installing.png" /> | <img src="docs/screenshots/home-remote-light.png" /> |
 
 </details>
 
