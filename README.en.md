@@ -16,14 +16,14 @@ Windows 11 Settings look · Acrylic glass · Single self-contained exe
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20%7C%20Server-0078D6?style=flat-square&logo=windows&logoColor=white)](#-requirements)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF-UI](https://img.shields.io/badge/UI-WPF--UI%20Fluent-5C2D91?style=flat-square)](https://github.com/lepoco/wpfui)
-[![Self-test](https://img.shields.io/badge/self--test-26%20passed-brightgreen?style=flat-square)](#-automated-testing)
+[![Self-test](https://img.shields.io/badge/self--test-27%20passed-brightgreen?style=flat-square)](#-automated-testing)
 
 [简体中文](README.md) | **English**
 
 </div>
 
 > [!NOTE]
-> The app UI is currently in **Simplified Chinese**. An English UI is on the roadmap.
+> The UI is available in **English and Simplified Chinese**. It follows the Windows display language by default; switch it any time under *Settings → Language*.
 
 ## 📖 Overview
 
@@ -54,6 +54,7 @@ The installer ships **no tunneling binaries**; they are fetched from their offic
 | | RDP or SSH | Child processes live in a Job Object and die with the app |
 | 🎨 **UI** | Fluent design | NavigationView + cards like Windows Settings |
 | | Glass | Acrylic / Mica / Mica Alt; light / dark / system |
+| | 🌐 Bilingual | English / 简体中文 / follow system, switches instantly; shared connection info follows the language |
 
 ## 📸 Screenshots
 
@@ -61,9 +62,11 @@ The installer ships **no tunneling binaries**; they are fetched from their offic
 
 | Remote Desktop (dark) | Access control |
 | :-: | :-: |
-| <img src="docs/screenshots/remote-dark.png" /> | <img src="docs/screenshots/access-light.png" /> |
+| <img src="docs/screenshots/en/remote-dark.png" /> | <img src="docs/screenshots/en/access-light.png" /> |
 | **SSH** | **Tunneling** |
-| <img src="docs/screenshots/ssh-dark.png" /> | <img src="docs/screenshots/tunnel-light.png" /> |
+| <img src="docs/screenshots/en/ssh-dark.png" /> | <img src="docs/screenshots/en/tunnel-light.png" /> |
+| **Settings** | **Remote Desktop (light)** |
+| <img src="docs/screenshots/en/settings-dark.png" /> | <img src="docs/screenshots/en/remote-light.png" /> |
 
 ## 📦 Download
 
@@ -154,7 +157,7 @@ cloudflared access rdp --hostname xxx.trycloudflare.com --url rdp://localhost:13
 
 ## 🧪 Automated testing
 
-Every push runs an end-to-end self-test on a **real Windows Server VM** in GitHub Actions (`RdpHelper.exe --selftest report.json`): enabling RDP, a real **RDP X.224 handshake**, port change to 13389 and back, firewall allow/deny rules read back, OpenSSH start + **SSH banner handshake** on 22 / 22022, downloading all three tunnel clients, and **public end-to-end RDP handshakes through bore and Cloudflare**. A GUI self-test renders every page in light and dark at 2×.
+Every push runs an end-to-end self-test on a **real Windows Server VM** in GitHub Actions (`RdpHelper.exe --selftest report.json`): enabling RDP, a real **RDP X.224 handshake**, port change to 13389 and back, firewall allow/deny rules read back, OpenSSH start + **SSH banner handshake** on 22 / 22022, downloading all three tunnel clients, and **public end-to-end RDP handshakes through bore and Cloudflare**. A GUI self-test renders every page in light / dark × English / Chinese at 2×, fails if any Chinese text is left on the English UI, and exercises the live language switch; `tools/check_i18n.py` statically verifies translation coverage.
 
 ## 🛠️ Build from source
 

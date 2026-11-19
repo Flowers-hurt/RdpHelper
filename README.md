@@ -16,7 +16,7 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20%7C%20Server-0078D6?style=flat-square&logo=windows&logoColor=white)](#-系统要求)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF-UI](https://img.shields.io/badge/UI-WPF--UI%20Fluent-5C2D91?style=flat-square)](https://github.com/lepoco/wpfui)
-[![Self-test](https://img.shields.io/badge/self--test-26%20passed-brightgreen?style=flat-square)](#-自动化测试)
+[![Self-test](https://img.shields.io/badge/self--test-27%20passed-brightgreen?style=flat-square)](#-自动化测试)
 [![Stars](https://img.shields.io/github/stars/Flowers-hurt/RdpHelper?style=flat-square&logo=github)](https://github.com/Flowers-hurt/RdpHelper/stargazers)
 
 **简体中文** | [English](README.en.md)
@@ -57,6 +57,7 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 | | 远程桌面 / SSH 均可穿透 | 子进程挂在 Job Object 上，程序退出必定一起结束 |
 | 🎨 **界面** | Win11 Fluent 设计 | 仿系统「设置」，导航 + 卡片 + 开关 |
 | | 毛玻璃 | 亚克力 / 云母 / 云母 Alt 可切换；浅色 / 深色 / 跟随系统 |
+| | 🌐 中英双语 | 设置里切换「跟随系统 / 简体中文 / English」，立即生效；复制给别人的连接信息也随语言输出 |
 
 ## 📸 界面截图
 
@@ -96,6 +97,16 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 | :-: | :-: |
 | <img src="docs/screenshots/ssh-light.png" /> | <img src="docs/screenshots/access-dark.png" /> |
 | <img src="docs/screenshots/tunnel-dark.png" /> | <img src="docs/screenshots/settings-light.png" /> |
+
+</details>
+
+<details>
+<summary>English UI 截图</summary>
+
+| | |
+| :-: | :-: |
+| <img src="docs/screenshots/en/remote-dark.png" /> | <img src="docs/screenshots/en/access-light.png" /> |
+| <img src="docs/screenshots/en/tunnel-light.png" /> | <img src="docs/screenshots/en/settings-dark.png" /> |
 
 </details>
 
@@ -284,7 +295,8 @@ cloudflared access rdp --hostname xxx.trycloudflare.com --url rdp://localhost:13
 | 访问控制 | 白名单 / 黑名单写入防火墙并回读 `RemoteAddress`；清空后恢复 `Any`；地址格式校验 |
 | SSH | 开启 → **SSH banner 握手** → 改端口 22022 → 握手 → 恢复 22；`sshd_config` 改写单元测试 |
 | 内网穿透 | 下载 cloudflared / ngrok / bore 并验证版本；**bore 与 Cloudflare 公网端到端 RDP 握手**；退出后无残留进程 |
-| 其它 | 局域网 IP 识别、远程信息生成、剪贴板读写；界面自检：5 个页面 × 浅 / 深色 2 倍截图 |
+| 其它 | 局域网 IP 识别、远程信息生成、剪贴板读写 |
+| 界面 / 多语言 | 5 个页面 × 浅 / 深色 × 中 / 英 2 倍截图；英文界面可视树无残留中文、无缺失译文；实测设置页切换语言；`tools/check_i18n.py` 静态检查译文覆盖与占位符 |
 
 ## 🛠️ 从源码构建
 
@@ -371,7 +383,7 @@ Windows 家庭版没有远程桌面 **服务端**（只能去连别人，不能�
 - [ ] 自建 frp 服务器支持
 - [ ] 托盘常驻 + 穿透开机自启
 - [ ] 远程登录 / 失败记录查看
-- [ ] English UI
+- [x] 中英双语界面
 
 ## 🤝 参与贡献
 
