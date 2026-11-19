@@ -53,8 +53,17 @@ public partial class TunnelCard : UserControl
         bool running = _p.IsRunning;
         PathText.Text = installed ? L.F("已下载：{0}", _p.ExePath) : L.F("未下载 · 将下载到 {0}（不随安装包分发，按需下载）", _p.ToolDir);
         DownloadButton.Content = installed ? L.T("重新下载 / 更新") : L.T("下载组件");
-        UninstallButton.IsEnabled = installed && !running;
-        StartButton.IsEnabled = installed && !running;
+        DownloadButton.IsEnabled = !_p.IsDownloading && !running;
+        DownloadProgress.Visibility = _p.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
+        DownloadProgress.IsIndeterminate = _p.DownloadFraction < 0;
+        if (_p.DownloadFraction >= 0) DownloadProgress.Value = _p.DownloadFraction;
+        if (_p.IsDownloading)
+        {
+            PathText.Text = L.T("正在下载…") + " " + _p.DownloadText;
+            Expander.IsExpanded = true;
+        }
+        UninstallButton.IsEnabled = installed && !running && !_p.IsDownloading;
+        StartButton.IsEnabled = installed && !running && !_p.IsDownloading;
         StopButton.IsEnabled = running;
         TargetBox.IsEnabled = !running;
 
@@ -79,31 +88,19 @@ public partial class TunnelCard : UserControl
 
     private async void Download_Click(object sender, RoutedEventArgs e)
     {
-        DownloadButton.IsEnabled = false;
-        DownloadProgress.Visibility = Visibility.Visible;
-        DownloadProgress.IsIndeterminate = true;
+        if (_p.IsDownloading) return;
         Expander.IsExpanded = true;
+        // 进度、按钮状态都由 provider 的 StateChanged 驱动（切页回来也能接上）
+        var p = _p;
         try
         {
-            var progress = new Progress<double>(v =>
-            {
-                DownloadProgress.IsIndeterminate = false;
-                DownloadProgress.Value = v;
-            });
-            await _p.InstallAsync(progress);
-            var ver = await _p.GetVersionAsync();
-            Notify.Success(L.F("{0} 下载完成", _p.Name), ver);
+            await p.InstallAsync(null);
+            var ver = await p.GetVersionAsync();
+            Notify.Success(L.F("{0} 下载完成", p.Name), ver);
         }
         catch (Exception ex)
         {
             Notify.Error(L.T("下载失败"), ex.Message + "\n" + L.T("网络不好时可以手动下载后点「导入本地 exe」。"));
-            AppendLog(L.F("下载失败：{0}", ex.Message));
-        }
-        finally
-        {
-            DownloadButton.IsEnabled = true;
-            DownloadProgress.Visibility = Visibility.Collapsed;
-            UpdateState();
         }
     }
 

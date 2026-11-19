@@ -37,34 +37,14 @@ public static partial class SshService
 
     public static async Task<bool> IsRunningAsync() => (await GetStatusAsync()).status == "Running";
 
+    /// <summary>安装 OpenSSH 服务器（实际工作在 <see cref="SshInstaller"/>，进度不依赖页面）。progress 收到安装日志行。</summary>
     public static async Task InstallAsync(IProgress<string>? progress = null)
     {
         if (IsInstalled) return;
-        progress?.Report(L.T("正在通过 Windows 可选功能安装 OpenSSH 服务器（可能需要几分钟）…"));
-        var r = await Shell.PowerShellAsync(@"
-try {
-  $cap = Get-WindowsCapability -Online -ErrorAction Stop | Where-Object Name -like 'OpenSSH.Server*' | Select-Object -First 1
-  if (-not $cap) { throw 'OpenSSH.Server capability not found' }
-  if ($cap.State -ne 'Installed') { Add-WindowsCapability -Online -Name $cap.Name -ErrorAction Stop | Out-Null }
-  'OK'
-} catch { 'FAIL:' + $_.Exception.Message }", 20 * 60_000);
-        if (IsInstalled) return;
-
-        progress?.Report(L.T("可选功能安装失败，改为下载微软官方 Win32-OpenSSH 安装包…") + Environment.NewLine + r.Output);
-        using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("RdpHelper/" + AppPaths.Version);
-        var json = await http.GetStringAsync("https://api.github.com/repos/PowerShell/Win32-OpenSSH/releases/latest");
-        using var doc = System.Text.Json.JsonDocument.Parse(json);
-        string? url = doc.RootElement.GetProperty("assets").EnumerateArray()
-            .Select(a => a.GetProperty("browser_download_url").GetString())
-            .FirstOrDefault(u => u != null && u.EndsWith("Win64.msi", StringComparison.OrdinalIgnoreCase)
-                                 || u != null && u.Contains("Win64") && u.EndsWith(".msi"));
-        if (url == null) throw new InvalidOperationException(L.T("没有找到 Win32-OpenSSH 的 MSI 安装包"));
-        string msi = Path.Combine(Path.GetTempPath(), "OpenSSH-Win64.msi");
-        await File.WriteAllBytesAsync(msi, await http.GetByteArrayAsync(url));
-        progress?.Report(L.F("正在安装 {0} …", Path.GetFileName(url)));
-        var m = await Shell.RunAsync("msiexec.exe", $"/i \"{msi}\" /qn /norestart", 10 * 60_000);
-        if (!IsInstalled) throw new InvalidOperationException(L.F("OpenSSH 安装失败：{0}", m.Output));
+        Action<string> h = line => progress?.Report(line);
+        SshInstaller.LogLine += h;
+        try { await SshInstaller.RunAsync(); }
+        finally { SshInstaller.LogLine -= h; }
     }
 
     public static async Task<string> EnableAsync(bool on)

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using RdpHelper.Services;
 using RdpHelper.Views;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -40,11 +41,18 @@ public static class GuiSelfTest
         window.Top = 0;
         await Settle(2500);
 
+        // RDPHELPER_GUI_PAGES=remote,ssh 只截指定页面（家庭版模拟等补充截图用）
+        var only = (Environment.GetEnvironmentVariable("RDPHELPER_GUI_PAGES") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var pages = only.Length == 0 ? Pages : Pages.Where(p => only.Contains(p.name)).ToArray();
+
+        if (Environment.GetEnvironmentVariable("RDPHELPER_GUI_INSTALLTEST") == "1")
+            failed += await InstallProgressTestAsync(window, outDir, log);
+
         foreach (var theme in new[] { ApplicationTheme.Light, ApplicationTheme.Dark })
         {
             ApplicationThemeManager.Apply(theme, WindowBackdropType.Acrylic, true);
             await Settle(800);
-            foreach (var (page, name) in Pages)
+            foreach (var (page, name) in pages)
             {
                 try
                 {
@@ -69,7 +77,7 @@ public static class GuiSelfTest
         {
             foreach (var k in L.Missing.Keys) { failed++; log.AppendLine("FAIL 缺少英文译文：" + k); }
         }
-        else
+        else if (only.Length == 0)
         {
             // 实测设置页的语言切换：重建窗口后应停在设置页、全部是英文
             try
@@ -91,6 +99,71 @@ public static class GuiSelfTest
         }
         await File.WriteAllTextAsync(Path.Combine(outDir, "gui-selftest.txt"), log.ToString());
         return failed == 0 ? 0 : 1;
+    }
+
+    /// <summary>
+    /// 复现「安装 OpenSSH 时切到别的页面再回来，转圈停了、看不到进度」：
+    /// 先卸载自带 MSI 装的 OpenSSH（引擎自检已装过）→ 打开 SSH 页点「一键安装」→ 切到远程桌面页 → 再切回 SSH 页，
+    /// 新页面实例上进度条和阶段文字必须仍在显示；最后等安装 + 启动完成、安装卡片自动收起。
+    /// </summary>
+    private static async Task<int> InstallProgressTestAsync(MainWindow window, string outDir, StringBuilder log)
+    {
+        try
+        {
+            ApplicationThemeManager.Apply(ApplicationTheme.Light, WindowBackdropType.Acrylic, true);
+            var msi = SshInstaller.BundledMsi ?? throw new InvalidOperationException("redist 里没有自带的 OpenSSH MSI");
+            var un = await Shell.RunAsync("msiexec.exe", $"/x \"{msi}\" /qn /norestart", 10 * 60_000);
+            bool removed = !SshService.IsInstalled;
+            log.AppendLine($"     卸载 OpenSSH（msiexec /x exit {un.ExitCode}）后 sshd 已不存在={removed}");
+
+            window.NavigateTo(typeof(SshPage));
+            await Settle(2500);
+            var first = Find<SshPage>(window) ?? throw new InvalidOperationException("找不到 SSH 页");
+            var installButton = (System.Windows.Controls.Primitives.ButtonBase)first.FindName("InstallButton");
+            bool buttonShown = installButton.IsVisible;
+            if (removed)
+                installButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); // 真实按钮路径
+            else
+                _ = SshInstaller.RunAsync(force: true); // 卸载没成功时退化为强制重装，仍可验证切页
+            await Settle(1200);
+            window.NavigateTo(typeof(RemotePage));
+            await Settle(1500);
+            window.NavigateTo(typeof(SshPage));
+            await Settle(1000);
+            var second = Find<SshPage>(window);
+            var bar = (System.Windows.Controls.ProgressBar?)second?.FindName("InstallProgress");
+            var desc = (System.Windows.Controls.TextBlock?)second?.FindName("InstallDesc");
+            var card = (FrameworkElement?)second?.FindName("InstallCard");
+            bool running = SshInstaller.IsRunning;
+            bool visible = bar?.IsVisible == true && card?.IsVisible == true && desc?.Text == SshInstaller.Stage;
+            string stage = desc?.Text ?? "";
+            Render(window, Path.Combine(outDir, "ssh-installing.png"), false);
+
+            var until = DateTime.UtcNow.AddMinutes(3);
+            while (DateTime.UtcNow < until && (SshInstaller.IsRunning || card?.IsVisible == true)) await Settle(500);
+            await Settle(3000);
+            bool collapsed = card?.IsVisible == false;
+            bool sshRunning = await SshService.IsRunningAsync();
+            Render(window, Path.Combine(outDir, "ssh-installed.png"), false);
+
+            bool ok = !ReferenceEquals(first, second) && running && visible && collapsed && SshService.IsInstalled && (!removed || (buttonShown && sshRunning));
+            log.AppendLine($"{(ok ? "OK  " : "FAIL")} SSH 安装进度切页保持：新页面实例={!ReferenceEquals(first, second)} 切回时仍在安装={running} 进度条可见={bar?.IsVisible} 阶段文字=“{stage}” 结束后卡片收起={collapsed} sshd 运行={sshRunning} 安装按钮可见={buttonShown}");
+            foreach (var l in SshInstaller.Log) log.AppendLine("     " + l);
+            return ok ? 0 : 1;
+        }
+        catch (Exception ex)
+        {
+            log.AppendLine("FAIL SSH 安装进度切页保持：" + ex);
+            return 1;
+        }
+    }
+
+    private static T? Find<T>(DependencyObject root) where T : DependencyObject
+    {
+        if (root is T t) return t;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            if (Find<T>(VisualTreeHelper.GetChild(root, i)) is { } r) return r;
+        return null;
     }
 
     private static readonly Regex Cjk = new(@"[\u4e00-\u9fff]");

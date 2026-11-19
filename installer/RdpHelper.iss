@@ -1,8 +1,9 @@
 ; Inno Setup 安装脚本 —— 由 GitHub Actions 调用：ISCC /DAppVersion=x.y.z installer\RdpHelper.iss
-; 注意：安装包只包含主程序，不包含任何内网穿透组件（cloudflared / ngrok / bore 在程序内按需下载）。
+; 安装包包含主程序 + 微软官方 Win32-OpenSSH 安装包（redist，用于离线安装 SSH 服务器）；
+; 不包含任何内网穿透组件（cloudflared / ngrok / bore 在程序内按需下载）。
 
 #ifndef AppVersion
-  #define AppVersion "1.0.0"
+  #define AppVersion "1.1.0"
 #endif
 #define AppName "RdpHelper"
 #define AppDisplayName "RdpHelper 远程桌面助手"
@@ -44,6 +45,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "..\publish\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\publish\redist\*"; DestDir: "{app}\redist"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppDisplayName}"; Filename: "{app}\{#AppExe}"

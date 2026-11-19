@@ -11,7 +11,7 @@ public static class Shell
         public bool Ok => ExitCode == 0;
     }
 
-    public static async Task<Result> RunAsync(string file, string args, int timeoutMs = 60_000, string? workDir = null)
+    public static async Task<Result> RunAsync(string file, string args, int timeoutMs = 60_000, string? workDir = null, Action<string>? onLine = null)
     {
         var psi = new ProcessStartInfo(file, args)
         {
@@ -25,8 +25,8 @@ public static class Shell
         };
         using var p = new Process { StartInfo = psi };
         var sb = new StringBuilder();
-        p.OutputDataReceived += (_, e) => { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
-        p.ErrorDataReceived += (_, e) => { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
+        p.OutputDataReceived += (_, e) => { if (e.Data != null) { lock (sb) sb.AppendLine(e.Data); onLine?.Invoke(e.Data); } };
+        p.ErrorDataReceived += (_, e) => { if (e.Data != null) { lock (sb) sb.AppendLine(e.Data); onLine?.Invoke(e.Data); } };
         p.Start();
         p.BeginOutputReadLine();
         p.BeginErrorReadLine();

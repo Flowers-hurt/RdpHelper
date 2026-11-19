@@ -24,6 +24,7 @@ public partial class RemotePage : Page
         {
             EditionBar.Message = L.F("{0} 家庭版没有远程桌面服务端，只能连接别人，不能被别人连接。可升级到专业版，或使用 SSH 功能。", ed.ProductName);
             EditionBar.IsOpen = true;
+            UpgradeCard.Visibility = Visibility.Visible;
         }
         RemoteSessionBar.IsOpen = RdpService.IsInRemoteSession;
 
@@ -125,6 +126,50 @@ public partial class RemotePage : Page
             int port = RdpService.GetPort();
             var text = port == RdpService.DefaultPort ? ip : $"{ip}:{port}";
             if (RemoteInfo.CopyToClipboard(text)) Notify.Success(L.T("已复制"), text);
+        }
+    }
+
+    // ---------- 家庭版升级 ----------
+
+    private void UpgradeStore_Click(object sender, RoutedEventArgs e)
+    {
+        try { EditionUpgrade.OpenStore(); }
+        catch { EditionUpgrade.OpenActivationSettings(); }
+    }
+
+    private void UpgradeActivation_Click(object sender, RoutedEventArgs e) => EditionUpgrade.OpenActivationSettings();
+
+    private async void UpgradeKey_Click(object sender, RoutedEventArgs e)
+    {
+        var key = EditionUpgrade.NormalizeKey(UpgradeKeyBox.Text);
+        if (key == null)
+        {
+            Notify.Warn(L.T("密钥格式不对"), L.T("应为 25 位，形如 XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"));
+            return;
+        }
+        await RunUpgrade(key, L.T("将用这个密钥把系统升级到专业版。升级过程中电脑会自动重启，请先保存好其他程序里的工作。继续吗？"));
+    }
+
+    private async void UpgradeGeneric_Click(object sender, RoutedEventArgs e) =>
+        await RunUpgrade(EditionUpgrade.GenericProKey,
+            L.T("将用微软公开的专业版通用密钥切换到专业版，完成后电脑会自动重启。\n只有这台电脑本来就有专业版数字许可证时才会自动激活，否则会显示未激活，需要另行购买。继续吗？"));
+
+    private async Task RunUpgrade(string key, string confirm)
+    {
+        if (!Confirm(confirm)) return;
+        UpgradeBusy.Visibility = Visibility.Visible;
+        UpgradeKeyButton.IsEnabled = UpgradeGenericButton.IsEnabled = false;
+        try
+        {
+            var r = await EditionUpgrade.UpgradeAsync(key);
+            if (r.Ok) Notify.Info(L.T("已开始升级"), L.T("请按系统提示完成，电脑会自动重启。重启后回到这里开启远程桌面。"));
+            else Notify.Error(L.T("升级没有成功"), (r.Output.Length > 0 ? r.Output + "\n" : "") + L.F("退出代码 {0}。可以改用「打开系统激活设置 → 更改产品密钥」手动输入。", r.ExitCode));
+        }
+        catch (Exception ex) { Notify.Error(L.T("升级没有成功"), ex.Message); }
+        finally
+        {
+            UpgradeBusy.Visibility = Visibility.Collapsed;
+            UpgradeKeyButton.IsEnabled = UpgradeGenericButton.IsEnabled = true;
         }
     }
 

@@ -121,13 +121,20 @@ public static class SelfTest
                 return "OK";
             });
 
-            await Run("安装 OpenSSH 服务器", async () =>
+            await Run("用自带安装包安装 OpenSSH（真实执行 MSI）", async () =>
             {
+                // runner 预装了系统版 OpenSSH（卸载要重启），这里强制走自带 MSI，装完后 sshd 应指向 Program Files\OpenSSH
+                var msi = SshInstaller.BundledMsi;
+                Assert(msi != null, "exe 旁边的 redist 目录里没有自带的 OpenSSH MSI");
                 var sw = Stopwatch.StartNew();
-                var log = new StringBuilder();
-                await SshService.InstallAsync(new Progress<string>(s => log.AppendLine(s)));
+                await SshInstaller.RunAsync(force: true);
+                var r = await Shell.PowerShellAsync("(Get-CimInstance Win32_Service -Filter \"Name='sshd'\").PathName");
+                var path = r.Output.Trim();
                 Assert(SshService.IsInstalled, "安装后仍检测不到 sshd 服务");
-                return $"用时 {sw.Elapsed.TotalSeconds:0}s {log.ToString().Trim()}";
+                Assert(path.Contains(@"Program Files\OpenSSH", StringComparison.OrdinalIgnoreCase), "sshd 不是来自自带 MSI：" + path);
+                Assert(SshInstaller.Percent == 1 && SshInstaller.LastError == null, "安装状态不对：" + SshInstaller.Stage);
+                Assert(!SshInstaller.IsRunning, "安装任务没有结束");
+                return $"用时 {sw.Elapsed.TotalSeconds:0}s · {Path.GetFileName(msi)} · {path}\n" + string.Join("\n", SshInstaller.Log);
             });
 
             await Run("开启 SSH", async () =>
@@ -231,6 +238,16 @@ public static class SelfTest
                 return $"{L.English.Count} 条译文\n" + text;
             }
             finally { L.Apply(L.Zh); }
+        });
+
+        await Run("专业版密钥格式校验（纯函数）", async () =>
+        {
+            await Task.CompletedTask;
+            Assert(EditionUpgrade.NormalizeKey(" vk7jg npht mc97j-m9mpg t3v66t ") == EditionUpgrade.GenericProKey, "规范化失败");
+            Assert(EditionUpgrade.NormalizeKey("ABCDE-FGHIJ-KLMNO-PQRST") == null, "24 位应判为无效");
+            Assert(EditionUpgrade.NormalizeKey("ABCDE-FGHIJ-KLMNO-PQRST-UVWX!") == null, "非法字符应判为无效");
+            bool hasChangepk = File.Exists(Path.Combine(Environment.SystemDirectory, "changepk.exe"));
+            return $"OK · changepk.exe 存在={hasChangepk}（不在 CI 上真正执行升级：会改系统版本并重启）";
         });
 
         await Run("关闭远程桌面", async () =>

@@ -16,6 +16,72 @@
                 IsClosable="False"
                 IsOpen="False"
                 Severity="Warning" />
+            <ui:CardExpander
+                x:Name="UpgradeCard"
+                Margin="0,0,0,12"
+                Icon="{ui:SymbolIcon ArrowCircleUp24}"
+                IsExpanded="True"
+                Visibility="Collapsed">
+                <ui:CardExpander.Header>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '升级到 Windows 专业版'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '专业版自带远程桌面服务。就地升级，不重装系统、保留文件和软件，完成后自动重启。需要正版专业版许可。'}" />
+                    </StackPanel>
+                </ui:CardExpander.Header>
+                <StackPanel Margin="40,4,0,4">
+                    <WrapPanel>
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Appearance="Primary"
+                            Click="UpgradeStore_Click"
+                            Content="{l:T '在微软商店购买升级'}"
+                            Icon="{ui:SymbolIcon Cart24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Click="UpgradeActivation_Click"
+                            Content="{l:T '打开系统激活设置'}"
+                            Icon="{ui:SymbolIcon Key24}" />
+                    </WrapPanel>
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        Style="{StaticResource CardTitle}"
+                        Text="{l:T '已有专业版产品密钥'}" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <ui:TextBox
+                            x:Name="UpgradeKeyBox"
+                            Width="340"
+                            Margin="0,0,8,8"
+                            FontFamily="Consolas, Cascadia Mono"
+                            PlaceholderText="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" />
+                        <ui:Button
+                            x:Name="UpgradeKeyButton"
+                            Margin="0,0,8,8"
+                            Click="UpgradeKey_Click"
+                            Content="{l:T '用此密钥升级'}"
+                            Icon="{ui:SymbolIcon ArrowCircleUp24}" />
+                        <ui:ProgressRing
+                            x:Name="UpgradeBusy"
+                            Width="18"
+                            Height="18"
+                            Margin="4,0,0,8"
+                            IsIndeterminate="True"
+                            Visibility="Collapsed" />
+                    </WrapPanel>
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        Style="{StaticResource CardTitle}"
+                        Text="{l:T '这台电脑以前激活过专业版？'}" />
+                    <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '数字许可证绑定在硬件或微软账户上时，可用微软公开的专业版通用密钥切换版本，重启联网后自动激活；没有专业版许可则会处于未激活状态。'}" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <ui:Button
+                            x:Name="UpgradeGenericButton"
+                            Margin="0,0,8,8"
+                            Click="UpgradeGeneric_Click"
+                            Content="{l:T '用通用密钥切换到专业版'}"
+                            Icon="{ui:SymbolIcon ArrowSwap24}" />
+                    </WrapPanel>
+                </StackPanel>
+            </ui:CardExpander>
             <ui:InfoBar
                 x:Name="RemoteSessionBar"
                 Title="{l:T '你正在通过远程桌面使用这台电脑'}"

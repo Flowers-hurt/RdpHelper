@@ -38,6 +38,22 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
           -p:Version=${{ steps.ver.outputs.version }} -o publish
 
+      - name: Bundle official Win32-OpenSSH MSI (redist)
+        shell: pwsh
+        run: |
+          $r = Invoke-RestMethod https://api.github.com/repos/PowerShell/Win32-OpenSSH/releases/latest -Headers @{ Authorization = "Bearer ${{ github.token }}" }
+          $msi = $r.assets | Where-Object name -like 'OpenSSH-Win64-*.msi' | Select-Object -First 1
+          $zip = $r.assets | Where-Object name -eq 'OpenSSH-Win64.zip' | Select-Object -First 1
+          New-Item -ItemType Directory -Force publish\redist | Out-Null
+          Invoke-WebRequest $msi.browser_download_url -OutFile "publish\redist\$($msi.name)"
+          Invoke-WebRequest $zip.browser_download_url -OutFile openssh.zip
+          Expand-Archive openssh.zip -DestinationPath openssh-zip
+          $lic = Get-ChildItem openssh-zip -Recurse -Include 'LICENSE*', 'LICENCE*' | Select-Object -First 1
+          if ($lic) { Copy-Item $lic.FullName publish\redist\OpenSSH-LICENSE.txt }
+          else { Invoke-WebRequest https://raw.githubusercontent.com/PowerShell/openssh-portable/latestw_all/LICENCE -OutFile publish\redist\OpenSSH-LICENSE.txt }
+          "Win32-OpenSSH $($r.tag_name)" | Set-Content publish\redist\OpenSSH-VERSION.txt
+          Get-ChildItem publish\redist | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
+
       - name: Engine self-test (real RDP / SSH / firewall / tunnels)
         shell: pwsh
         run: |
@@ -54,12 +70,20 @@ jobs:
         shell: pwsh
         run: |
           $fail = 0
-          foreach ($lang in 'zh', 'en') {
-            $dir = if ($lang -eq 'zh') { "$PWD\screenshots" } else { "$PWD\screenshots\en" }
-            $p = Start-Process -FilePath publish\RdpHelper.exe -ArgumentList '--gui-selftest', $dir, '--lang', $lang -Wait -PassThru
-            "== $lang (exit $($p.ExitCode)) =="
+          $runs = @(
+            @{ lang = 'zh'; dir = 'screenshots';      env = @{ RDPHELPER_GUI_INSTALLTEST = '1' } },
+            @{ lang = 'en'; dir = 'screenshots\en';   env = @{} },
+            @{ lang = 'zh'; dir = 'screenshots\home'; env = @{ RDPHELPER_FAKE_HOME = '1'; RDPHELPER_GUI_PAGES = 'remote' } },
+            @{ lang = 'en'; dir = 'screenshots\home-en'; env = @{ RDPHELPER_FAKE_HOME = '1'; RDPHELPER_GUI_PAGES = 'remote' } }
+          )
+          foreach ($run in $runs) {
+            foreach ($k in $run.env.Keys) { Set-Item "env:$k" $run.env[$k] }
+            $dir = "$PWD\$($run.dir)"
+            $p = Start-Process -FilePath publish\RdpHelper.exe -ArgumentList '--gui-selftest', $dir, '--lang', $run.lang -Wait -PassThru
+            "== $($run.dir) (exit $($p.ExitCode)) =="
             Get-Content "$dir\gui-selftest.txt" -Encoding UTF8 -ErrorAction SilentlyContinue
             if ($p.ExitCode -ne 0) { $fail = 1 }
+            foreach ($k in $run.env.Keys) { Remove-Item "env:$k" }
           }
           Get-ChildItem screenshots -Recurse -Filter *.png | ForEach-Object { $_.FullName }
           exit $fail
@@ -71,7 +95,7 @@ jobs:
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
           & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer\RdpHelper.iss
           if ($LASTEXITCODE -ne 0) { exit 1 }
-          Compress-Archive -Path publish\RdpHelper.exe, LICENSE -DestinationPath "dist\RdpHelper-${{ steps.ver.outputs.version }}-portable-x64.zip"
+          Compress-Archive -Path publish\RdpHelper.exe, publish\redist, LICENSE -DestinationPath "dist\RdpHelper-${{ steps.ver.outputs.version }}-portable-x64.zip"
           Get-ChildItem dist
 
       - uses: actions/upload-artifact@v4

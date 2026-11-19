@@ -64,7 +64,29 @@
                         <TextBlock
                             x:Name="InstallDesc"
                             Style="{StaticResource CardDesc}"
-                            Text="{l:T '通过 Windows「可选功能」安装，失败时自动改用微软官方 Win32-OpenSSH 安装包。可能需要几分钟。'}" />
+                            Text="{l:T '使用安装包自带的微软官方 Win32-OpenSSH，离线即可安装；失败时改用 Windows「可选功能」或在线下载。'}" />
+                        <ProgressBar
+                            x:Name="InstallProgress"
+                            Height="4"
+                            Margin="0,8,0,0"
+                            Maximum="1"
+                            Visibility="Collapsed" />
+                        <Expander
+                            x:Name="InstallLogExpander"
+                            Margin="0,6,0,0"
+                            Header="{l:T '安装日志'}"
+                            Visibility="Collapsed">
+                            <TextBox
+                                x:Name="InstallLog"
+                                Height="140"
+                                Margin="0,6,0,0"
+                                FontFamily="Consolas, Cascadia Mono"
+                                FontSize="11"
+                                HorizontalScrollBarVisibility="Auto"
+                                IsReadOnly="True"
+                                TextWrapping="NoWrap"
+                                VerticalScrollBarVisibility="Auto" />
+                        </Expander>
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">

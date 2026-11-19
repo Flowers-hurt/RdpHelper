@@ -33,6 +33,9 @@ public static class RdpService
         if (int.TryParse(build, out var b) && b >= 22000 && name.StartsWith("Windows 10"))
             name = "Windows 11" + name["Windows 10".Length..];
         bool home = id.StartsWith("Core", StringComparison.OrdinalIgnoreCase); // Core / CoreSingleLanguage / CoreCountrySpecific / CoreN
+        // 界面自检用：CI 没有家庭版机器，用环境变量模拟家庭版来渲染升级卡片
+        if (Environment.GetEnvironmentVariable("RDPHELPER_FAKE_HOME") == "1")
+            return new EditionInfo("Core", "Windows 11 Home", disp, build, true);
         return new EditionInfo(id, name, disp, build, home);
     }
 

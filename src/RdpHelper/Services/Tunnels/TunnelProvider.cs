@@ -42,7 +42,35 @@ public abstract partial class TunnelProvider
     /// <summary>返回下载地址（可能需要先查询 GitHub API）。</summary>
     protected abstract Task<string> ResolveDownloadUrlAsync(HttpClient http, CancellationToken ct);
 
+    /// <summary>下载状态放在 provider（全局单例）上，切换页面回来卡片仍能显示进度。</summary>
+    public bool IsDownloading { get; private set; }
+
+    /// <summary>0–1；小于 0 表示大小未知。</summary>
+    public double DownloadFraction { get; private set; } = -1;
+
+    public string DownloadText { get; private set; } = "";
+
     public async Task InstallAsync(IProgress<double>? progress, CancellationToken ct = default)
+    {
+        if (IsDownloading) throw new InvalidOperationException(L.F("{0} 正在下载中", Name));
+        IsDownloading = true;
+        DownloadFraction = -1;
+        DownloadText = "";
+        StateChanged?.Invoke();
+        try { await InstallCoreAsync(progress, ct); }
+        catch (Exception ex)
+        {
+            Emit(L.F("下载失败：{0}", ex.Message));
+            throw;
+        }
+        finally
+        {
+            IsDownloading = false;
+            StateChanged?.Invoke();
+        }
+    }
+
+    private async Task InstallCoreAsync(IProgress<double>? progress, CancellationToken ct)
     {
         Directory.CreateDirectory(ToolDir);
         using var http = CreateHttp();
@@ -63,10 +91,15 @@ public abstract partial class TunnelProvider
             {
                 await dst.WriteAsync(buf.AsMemory(0, n), ct);
                 done += n;
-                if (total > 0 && (DateTime.UtcNow - lastReport).TotalMilliseconds > 100)
+                if ((DateTime.UtcNow - lastReport).TotalMilliseconds > 150)
                 {
-                    progress?.Report((double)done / total.Value);
+                    DownloadFraction = total > 0 ? (double)done / total.Value : -1;
+                    DownloadText = total > 0
+                        ? L.F("已下载 {0:0.0} / {1:0.0} MB", done / 1048576.0, total.Value / 1048576.0)
+                        : L.F("已下载 {0:0.0} MB", done / 1048576.0);
+                    if (total > 0) progress?.Report(DownloadFraction);
                     lastReport = DateTime.UtcNow;
+                    StateChanged?.Invoke();
                 }
             }
         }

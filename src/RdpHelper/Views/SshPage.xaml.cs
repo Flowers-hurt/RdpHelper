@@ -7,10 +7,73 @@ namespace RdpHelper.Views;
 
 public partial class SshPage : Page
 {
+    // 安装流程是静态的：切换页面不会中断，也不会丢失进度
+    private static Task? _installFlow;
+    private static event Action? InstallFlowChanged;
+
+    private readonly Action _onInstallerChanged;
+    private readonly Action<string> _onInstallerLog;
+
     public SshPage()
     {
         InitializeComponent();
-        Loaded += async (_, _) => await RefreshAsync();
+        _onInstallerChanged = () => Dispatcher.BeginInvoke(ShowInstallState);
+        _onInstallerLog = line => Dispatcher.BeginInvoke(() => AppendInstallLog(line));
+        Action onFlow = () => Dispatcher.BeginInvoke(async () => await RefreshAsync());
+        Loaded += async (_, _) =>
+        {
+            SshInstaller.Changed += _onInstallerChanged;
+            SshInstaller.LogLine += _onInstallerLog;
+            InstallFlowChanged += onFlow;
+            InstallLog.Text = string.Join(Environment.NewLine, SshInstaller.Log);
+            ShowInstallState();
+            await RefreshAsync();
+        };
+        Unloaded += (_, _) =>
+        {
+            SshInstaller.Changed -= _onInstallerChanged;
+            SshInstaller.LogLine -= _onInstallerLog;
+            InstallFlowChanged -= onFlow;
+        };
+    }
+
+    private static bool InstallBusyNow => _installFlow is { IsCompleted: false } || SshInstaller.IsRunning;
+
+    private void ShowInstallState()
+    {
+        bool busy = InstallBusyNow;
+        bool hasLog = SshInstaller.Log.Count > 0;
+        bool installed = SshService.IsInstalled;
+        InstallCard.Visibility = installed && !busy ? Visibility.Collapsed : Visibility.Visible;
+        SshToggle.IsEnabled = installed && !busy;
+        InstallBusy.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        InstallButton.IsEnabled = !busy;
+        InstallProgress.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        InstallProgress.IsIndeterminate = SshInstaller.Percent < 0;
+        if (SshInstaller.Percent >= 0) InstallProgress.Value = SshInstaller.Percent;
+        InstallLogExpander.Visibility = hasLog ? Visibility.Visible : Visibility.Collapsed;
+        if (busy || SshInstaller.LastError != null)
+            InstallDesc.Text = SshInstaller.Stage;
+    }
+
+    private void AppendInstallLog(string line)
+    {
+        InstallLog.AppendText((InstallLog.Text.Length > 0 ? Environment.NewLine : "") + line);
+        InstallLog.ScrollToEnd();
+        InstallLogExpander.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>安装并启动 sshd。在 UI 线程启动，后续回到 UI 线程弹提示；与具体页面实例无关。</summary>
+    private static async Task InstallFlowAsync()
+    {
+        try
+        {
+            await SshInstaller.RunAsync();
+            var warn = await SshService.EnableAsync(true);
+            RemotePage.Done(L.T("OpenSSH 服务器已安装并启动"), warn);
+        }
+        catch (Exception ex) { Notify.Error(L.T("OpenSSH 安装失败"), ex.Message); }
+        finally { InstallFlowChanged?.Invoke(); }
     }
 
     private async Task RefreshAsync()
@@ -20,8 +83,7 @@ public partial class SshPage : Page
         bool running = status == "Running";
         int port = SshService.GetPort();
 
-        InstallCard.Visibility = installed ? Visibility.Collapsed : Visibility.Visible;
-        SshToggle.IsEnabled = installed;
+        ShowInstallState();
         SshToggle.IsChecked = running;
         PortText.Text = port.ToString();
         if (string.IsNullOrEmpty(PortBox.Text)) PortBox.Text = port.ToString();
@@ -45,15 +107,14 @@ public partial class SshPage : Page
         CommandText.Text = SshService.ConnectCommand(lan?.Ip ?? L.T("本机IP"), port);
     }
 
-    private async void Install_Click(object sender, RoutedEventArgs e)
+    private void Install_Click(object sender, RoutedEventArgs e)
     {
-        await Busy(InstallBusy, async () =>
+        if (!InstallBusyNow)
         {
-            var progress = new Progress<string>(s => InstallDesc.Text = s);
-            await SshService.InstallAsync(progress);
-            var warn = await SshService.EnableAsync(true);
-            RemotePage.Done(L.T("OpenSSH 服务器已安装并启动"), warn);
-        });
+            InstallLog.Text = "";
+            _installFlow = InstallFlowAsync();
+        }
+        ShowInstallState();
     }
 
     private async void SshToggle_Click(object sender, RoutedEventArgs e)
