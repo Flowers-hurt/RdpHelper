@@ -47,7 +47,7 @@ public abstract partial class TunnelProvider
         Directory.CreateDirectory(ToolDir);
         using var http = CreateHttp();
         string url = await ResolveDownloadUrlAsync(http, ct);
-        Emit("下载：" + url);
+        Emit(L.F("下载：{0}", url));
         string tmp = Path.Combine(ToolDir, "download.tmp");
         using (var resp = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct))
         {
@@ -77,7 +77,7 @@ public abstract partial class TunnelProvider
             using (var zip = ZipFile.OpenRead(tmp))
             {
                 var entry = zip.Entries.FirstOrDefault(e => e.Name.Equals(ExeName, StringComparison.OrdinalIgnoreCase))
-                            ?? throw new InvalidOperationException("压缩包里没找到 " + ExeName);
+                            ?? throw new InvalidOperationException(L.F("压缩包里没找到 {0}", ExeName));
                 entry.ExtractToFile(ExePath, true);
             }
             File.Delete(tmp);
@@ -86,7 +86,7 @@ public abstract partial class TunnelProvider
         {
             File.Move(tmp, ExePath, true);
         }
-        Emit("已安装到 " + ExePath);
+        Emit(L.F("已安装到 {0}", ExePath));
         StateChanged?.Invoke();
     }
 
@@ -95,7 +95,7 @@ public abstract partial class TunnelProvider
     {
         Directory.CreateDirectory(ToolDir);
         File.Copy(path, ExePath, true);
-        Emit("已导入 " + path);
+        Emit(L.F("已导入 {0}", path));
         StateChanged?.Invoke();
     }
 
@@ -126,7 +126,7 @@ public abstract partial class TunnelProvider
 
     public async Task<string> StartAsync(int port, RemoteKind target = RemoteKind.Rdp, TimeSpan? timeout = null)
     {
-        if (!IsInstalled) throw new InvalidOperationException(Name + " 尚未下载");
+        if (!IsInstalled) throw new InvalidOperationException(L.F("{0} 尚未下载", Name));
         Stop();
         PublicAddress = null;
         LocalPort = port;
@@ -164,10 +164,10 @@ public abstract partial class TunnelProvider
         p.ErrorDataReceived += (_, e) => OnLine(e.Data);
         p.Exited += (_, _) =>
         {
-            Emit($"进程已退出（代码 {SafeExitCode(p)}）");
+            Emit(L.F("进程已退出（代码 {0}）", SafeExitCode(p)));
             string tail;
             lock (_recent) tail = string.Join("\n", _recent.TakeLast(6));
-            tcs.TrySetException(new InvalidOperationException(Name + " 启动失败：\n" + tail));
+            tcs.TrySetException(new InvalidOperationException(L.F("{0} 启动失败：", Name) + "\n" + tail));
             if (ReferenceEquals(_proc, p))
             {
                 _proc = null;
@@ -188,7 +188,7 @@ public abstract partial class TunnelProvider
         if (done != tcs.Task)
         {
             Stop();
-            throw new TimeoutException($"{Name} 在 {wait.TotalSeconds:0} 秒内没有返回公网地址，可能是网络无法连接到服务商。");
+            throw new TimeoutException(L.F("{0} 在 {1:0} 秒内没有返回公网地址，可能是网络无法连接到服务商。", Name, wait.TotalSeconds));
         }
         return await tcs.Task;
     }
@@ -201,7 +201,7 @@ public abstract partial class TunnelProvider
         {
             try { if (!p.HasExited) p.Kill(true); } catch { /* ignore */ }
             p.Dispose();
-            Emit("已停止");
+            Emit(L.T("已停止"));
         }
         PublicAddress = null;
         StateChanged?.Invoke();
@@ -233,7 +233,7 @@ public abstract partial class TunnelProvider
             var name = a.GetProperty("name").GetString() ?? "";
             if (match(name)) return a.GetProperty("browser_download_url").GetString()!;
         }
-        throw new InvalidOperationException($"在 {repo} 最新版本里没有找到 Windows 安装包");
+        throw new InvalidOperationException(L.F("在 {0} 最新版本里没有找到 Windows 安装包", repo));
     }
 
     private static int SafeExitCode(Process p) { try { return p.ExitCode; } catch { return -1; } }

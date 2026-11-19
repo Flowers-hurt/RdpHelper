@@ -19,6 +19,8 @@ public partial class AccessPage : Page
     {
         var (ra, rd) = FirewallService.GetPolicy(RemoteKind.Rdp);
         var (sa, sd) = FirewallService.GetPolicy(RemoteKind.Ssh);
+        RdpAllowBox.PlaceholderText = L.T("留空 = 允许所有") + "\n192.168.1.0/24\nLocalSubnet";
+        RdpDenyBox.PlaceholderText = L.T("例：") + "\n203.0.113.7\n198.51.100.0/24";
         RdpAllowBox.Text = string.Join(Environment.NewLine, ra);
         RdpDenyBox.Text = string.Join(Environment.NewLine, rd);
         SshAllowBox.Text = string.Join(Environment.NewLine, sa);
@@ -28,7 +30,7 @@ public partial class AccessPage : Page
     }
 
     private static string Summary(List<string> allow, List<string> deny, int port) =>
-        $"端口 {port} · " + (allow.Count == 0 ? "允许所有地址" : $"仅允许 {allow.Count} 条") + (deny.Count > 0 ? $" · 拦截 {deny.Count} 条" : " · 无黑名单");
+        L.F("端口 {0}", port) + " · " + (allow.Count == 0 ? L.T("允许所有地址") : L.F("仅允许 {0} 条", allow.Count)) + " · " + (deny.Count > 0 ? L.F("拦截 {0} 条", deny.Count) : L.T("无黑名单"));
 
     private static List<string> Lines(string text) =>
         FirewallService.Normalize(text.Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries));
@@ -41,12 +43,12 @@ public partial class AccessPage : Page
         {
             if (!FirewallService.IsValidEntry(item, out var err))
             {
-                Notify.Warn("名单格式有误", err);
+                Notify.Warn(L.T("名单格式有误"), err);
                 return;
             }
         }
         if (kind == RemoteKind.Rdp && allow.Count > 0 && RdpService.IsInRemoteSession &&
-            !RemotePage.Confirm("你正在远程使用这台电脑。启用白名单后，若你当前所在的 IP 不在名单内，保存后将无法再连回来。确定继续吗？"))
+            !RemotePage.Confirm(L.T("你正在远程使用这台电脑。启用白名单后，若你当前所在的 IP 不在名单内，保存后将无法再连回来。确定继续吗？")))
             return;
 
         Busy.Visibility = Visibility.Visible;
@@ -62,14 +64,14 @@ public partial class AccessPage : Page
             if (enabled)
             {
                 var warn = await FirewallService.ApplyAsync(kind, port, true);
-                RemotePage.Done("名单已保存并生效", warn);
+                RemotePage.Done(L.T("名单已保存并生效"), warn);
             }
             else
             {
-                Notify.Info("名单已保存", (kind == RemoteKind.Rdp ? "远程桌面" : "SSH") + " 当前未开启，开启时自动生效");
+                Notify.Info(L.T("名单已保存"), L.F("{0} 当前未开启，开启时自动生效", kind == RemoteKind.Rdp ? L.T("远程桌面") : "SSH"));
             }
         }
-        catch (Exception ex) { Notify.Error("保存失败", ex.Message); }
+        catch (Exception ex) { Notify.Error(L.T("保存失败"), ex.Message); }
         finally
         {
             Busy.Visibility = Visibility.Collapsed;
@@ -101,7 +103,7 @@ public partial class AccessPage : Page
 
     private static void AppendLine(System.Windows.Controls.TextBox box, string? line)
     {
-        if (line == null) { Notify.Warn("没找到局域网网段"); return; }
+        if (line == null) { Notify.Warn(L.T("没找到局域网网段")); return; }
         if (Lines(box.Text).Contains(line)) return;
         box.Text = (box.Text.TrimEnd() + Environment.NewLine + line).Trim();
     }

@@ -217,6 +217,22 @@ public static class SelfTest
             return text;
         });
 
+        await Run("英文界面文案（远程信息 + 译文覆盖）", async () =>
+        {
+            L.Apply(L.En);
+            try
+            {
+                var text = RemoteInfo.Build(await SshService.IsRunningAsync());
+                Assert(text.Contains("Remote Desktop") && text.Contains("Computer name"), "英文远程信息不对：" + text);
+                Assert(!System.Text.RegularExpressions.Regex.IsMatch(text, @"[\u4e00-\u9fff]"), "英文远程信息里有中文：" + text);
+                foreach (var (zh, en) in L.English)
+                    Assert(string.Format(en, 1, 2, 3, 4) is { Length: > 0 }, "译文格式串无效：" + zh);
+                Assert(L.Missing.IsEmpty, "缺少译文：" + string.Join(" | ", L.Missing.Keys));
+                return $"{L.English.Count} 条译文\n" + text;
+            }
+            finally { L.Apply(L.Zh); }
+        });
+
         await Run("关闭远程桌面", async () =>
         {
             await RdpService.EnableAsync(false);

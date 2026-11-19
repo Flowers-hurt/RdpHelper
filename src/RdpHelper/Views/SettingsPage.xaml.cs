@@ -16,9 +16,10 @@ public partial class SettingsPage : Page
         var s = AppSettings.Current;
         Select(ThemeBox, s.Theme);
         Select(BackdropBox, s.Backdrop);
+        Select(LanguageBox, s.Language);
         ToolsPathText.Text = AppPaths.Tools;
         SettingsPathText.Text = AppPaths.SettingsFile;
-        VersionText.Text = $"版本 {AppPaths.Version} · MIT 开源 · 基于 .NET 8 + WPF-UI";
+        VersionText.Text = L.F("版本 {0} · MIT 开源 · 基于 .NET 8 + WPF-UI", AppPaths.Version);
         _loading = false;
     }
 
@@ -37,6 +38,19 @@ public partial class SettingsPage : Page
         s.Backdrop = (string)((ComboBoxItem)BackdropBox.SelectedItem).Tag;
         s.Save();
         if (Application.Current.MainWindow is MainWindow w) App.ApplyAppearance(w);
+    }
+
+    private void Language_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        var s = AppSettings.Current;
+        var tag = (string)((ComboBoxItem)LanguageBox.SelectedItem).Tag;
+        if (tag == s.Language) return;
+        s.Language = tag;
+        s.Save();
+        string before = L.Lang;
+        L.Apply(tag);
+        if (L.Lang != before) Dispatcher.BeginInvoke(App.ReloadUi);
     }
 
     private void OpenTools_Click(object sender, RoutedEventArgs e)

@@ -23,6 +23,9 @@ public sealed class AppSettings
     /// <summary>system / light / dark</summary>
     public string Theme { get; set; } = "system";
 
+    /// <summary>system / zh / en</summary>
+    public string Language { get; set; } = "system";
+
     /// <summary>acrylic / mica / tabbed / none</summary>
     public string Backdrop { get; set; } = "acrylic";
 

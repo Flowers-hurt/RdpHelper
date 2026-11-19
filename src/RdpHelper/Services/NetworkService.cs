@@ -6,7 +6,7 @@ namespace RdpHelper.Services;
 
 public sealed record LanAddress(string Adapter, string Description, string Ip, bool HasGateway, bool IsVirtual, string Kind)
 {
-    public string Badge => IsVirtual ? "虚拟网卡" : HasGateway ? "推荐" : "";
+    public string Badge => IsVirtual ? L.T("虚拟网卡") : HasGateway ? L.T("推荐") : "";
     public bool ShowBadge => Badge.Length > 0;
 }
 
@@ -33,7 +33,7 @@ public static class NetworkService
             string kind = ni.NetworkInterfaceType switch
             {
                 NetworkInterfaceType.Wireless80211 => "Wi-Fi",
-                NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet or NetworkInterfaceType.FastEthernetT => "以太网",
+                NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet or NetworkInterfaceType.FastEthernetT => L.T("以太网"),
                 _ => ni.NetworkInterfaceType.ToString(),
             };
             foreach (var ua in props.UnicastAddresses)

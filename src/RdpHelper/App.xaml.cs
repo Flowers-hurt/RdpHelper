@@ -17,9 +17,16 @@ public partial class App : Application
         base.OnStartup(e);
         var args = e.Args;
 
+        // 语言：--lang zh|en 优先（自检 / 截图用），否则按设置（默认跟随系统）
+        int li = Array.IndexOf(args, "--lang");
+        string? langArg = li >= 0 && li + 1 < args.Length ? args[li + 1] : null;
+        if (li >= 0) args = args.Where((_, i) => i != li && i != li + 1).ToArray();
+        L.Apply(langArg ?? AppSettings.Current.Language);
+
         // 命令行自检（CI 在真实 Windows 上跑）：RdpHelper.exe --selftest report.json
         if (args.Length >= 1 && args[0] == "--selftest")
         {
+            if (langArg == null) L.Apply(L.Zh);
             int code = await SelfTest.RunAsync(args.Length > 1 ? args[1] : "selftest.json");
             Shutdown(code);
             return;
@@ -31,7 +38,7 @@ public partial class App : Application
             _mutex = new Mutex(true, "Global\\RdpHelper.SingleInstance", out bool created);
             if (!created)
             {
-                System.Windows.MessageBox.Show("RdpHelper 已经在运行了。", "RdpHelper", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                System.Windows.MessageBox.Show(L.T("RdpHelper 已经在运行了。"), "RdpHelper", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 Shutdown();
                 return;
             }
@@ -40,9 +47,7 @@ public partial class App : Application
         DispatcherUnhandledException += OnUnhandled;
 
         var window = new MainWindow();
-        MainWindow = window;
-        window.Closed += (_, _) => Shutdown();
-        window.Show();
+        ShowMain(window);
 
         if (guiTest)
         {
@@ -54,7 +59,34 @@ public partial class App : Application
     private void OnUnhandled(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         e.Handled = true;
-        Notify.Error("出错了", e.Exception.Message);
+        Notify.Error(L.T("出错了"), e.Exception.Message);
+    }
+
+    private void ShowMain(MainWindow window)
+    {
+        MainWindow = window;
+        // 切换语言时会换一个新窗口，旧窗口关闭不应退出程序
+        window.Closed += (_, _) => { if (ReferenceEquals(MainWindow, window)) Shutdown(); };
+        window.Show();
+    }
+
+    /// <summary>切换界面语言：按新语言重建主窗口，停在设置页；穿透进程等状态是静态的，不受影响。</summary>
+    public static void ReloadUi()
+    {
+        var app = (App)Current;
+        if (app.MainWindow is not MainWindow old) return;
+        var w = new MainWindow(typeof(Views.SettingsPage))
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Left = old.Left,
+            Top = old.Top,
+            Width = old.Width,
+            Height = old.Height,
+        };
+        var state = old.WindowState;
+        app.ShowMain(w);
+        w.WindowState = state;
+        old.Close();
     }
 
     protected override void OnExit(ExitEventArgs e)

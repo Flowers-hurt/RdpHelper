@@ -19,41 +19,41 @@ public static class RemoteInfo
         string Addr(string ip) => port == RdpService.DefaultPort ? ip : $"{ip}:{port}";
 
         var sb = new StringBuilder();
-        sb.AppendLine("【远程连接信息】");
-        sb.AppendLine($"计算机名：{Environment.MachineName}");
-        sb.AppendLine($"用户名：{UserName()}");
+        sb.AppendLine(L.T("【远程连接信息】"));
+        sb.AppendLine(L.F("计算机名：{0}", Environment.MachineName));
+        sb.AppendLine(L.F("用户名：{0}", UserName()));
 
         if (rdpOn)
         {
             sb.AppendLine();
-            sb.AppendLine($"■ 远程桌面（端口 {port}）");
+            sb.AppendLine(L.F("■ 远程桌面（端口 {0}）", port));
             if (real.Count > 0)
             {
-                sb.AppendLine($"局域网地址：{Addr(real[0].Ip)}");
+                sb.AppendLine(L.F("局域网地址：{0}", Addr(real[0].Ip)));
                 foreach (var l in real.Skip(1).Take(3))
-                    sb.AppendLine($"　　备用：{Addr(l.Ip)}（{l.Adapter}）");
+                    sb.AppendLine(L.F("　　备用：{0}（{1}）", Addr(l.Ip), l.Adapter));
             }
-            sb.AppendLine("连接方法：Win+R 输入 mstsc → 计算机填上面的地址 → 用户名/密码填这台电脑的 Windows 账户（微软账户填邮箱和微软账户密码）。");
-            sb.AppendLine("Mac / 手机：安装微软官方「Windows App」（原 Microsoft Remote Desktop）添加电脑即可。");
+            sb.AppendLine(L.T("连接方法：Win+R 输入 mstsc → 计算机填上面的地址 → 用户名/密码填这台电脑的 Windows 账户（微软账户填邮箱和微软账户密码）。"));
+            sb.AppendLine(L.T("Mac / 手机：安装微软官方「Windows App」（原 Microsoft Remote Desktop）添加电脑即可。"));
         }
 
         if (sshRunning)
         {
             sb.AppendLine();
-            sb.AppendLine($"■ SSH（端口 {sshPort}）");
-            if (real.Count > 0) sb.AppendLine("局域网：" + SshService.ConnectCommand(real[0].Ip, sshPort));
+            sb.AppendLine(L.F("■ SSH（端口 {0}）", sshPort));
+            if (real.Count > 0) sb.AppendLine(L.F("局域网：{0}", SshService.ConnectCommand(real[0].Ip, sshPort)));
         }
 
         foreach (var t in TunnelManager.All.Where(t => t.IsRunning && t.PublicAddress != null))
         {
             sb.AppendLine();
-            sb.AppendLine($"■ 公网地址（{t.Name} → {(t.Target == RemoteKind.Ssh ? "SSH" : "远程桌面")}）：{t.PublicAddress}");
+            sb.AppendLine(L.F("■ 公网地址（{0} → {1}）：{2}", t.Name, t.Target == RemoteKind.Ssh ? "SSH" : L.T("远程桌面"), t.PublicAddress));
             sb.AppendLine(t.VisitorGuide(t.PublicAddress!, t.Target));
         }
 
-        if (!rdpOn && !sshRunning) sb.AppendLine().AppendLine("（远程桌面和 SSH 目前都未开启）");
+        if (!rdpOn && !sshRunning) sb.AppendLine().AppendLine(L.T("（远程桌面和 SSH 目前都未开启）"));
         sb.AppendLine();
-        sb.Append("※ 密码请单独私下告知，不要和以上信息一起发送。");
+        sb.Append(L.T("※ 密码请单独私下告知，不要和以上信息一起发送。"));
         return sb.ToString();
     }
 

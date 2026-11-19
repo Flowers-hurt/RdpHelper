@@ -107,7 +107,7 @@ try {
         ValidatePort(port);
         int current = GetPort();
         if (port != current && IsListening(port))
-            throw new InvalidOperationException($"端口 {port} 已被其他程序占用，请换一个。");
+            throw new InvalidOperationException(L.F("端口 {0} 已被其他程序占用，请换一个。", port));
 
         using (var k = Hklm.CreateSubKey(RdpTcpKey, true))
             k.SetValue("PortNumber", port, RegistryValueKind.DWord);
@@ -119,7 +119,7 @@ try {
             var r = await Shell.PowerShellAsync(RestartTermServiceScript, 120_000);
             warn = Join(warn, CollectWarnings(r));
             if (!await WaitListeningAsync(port, true, 20_000))
-                warn = Join(warn, "远程桌面服务已重启，但暂未检测到端口 " + port + " 在监听，可稍后刷新或重启电脑。");
+                warn = Join(warn, L.F("远程桌面服务已重启，但暂未检测到端口 {0} 在监听，可稍后刷新或重启电脑。", port));
         }
         return warn;
     }
@@ -130,7 +130,7 @@ try {
     {
         if (port == DefaultPort) return;
         if (port < 1024 || port > 65535)
-            throw new ArgumentOutOfRangeException(nameof(port), "端口需在 1024–65535 之间（或默认 3389）。");
+            throw new ArgumentOutOfRangeException(nameof(port), L.T("端口需在 1024–65535 之间（或默认 3389）。"));
     }
 
     /// <summary>随机挑一个未被占用的高位端口。</summary>
@@ -171,9 +171,8 @@ if ((Get-Service TermService).Status -ne 'Running') {
 
     internal static string CollectWarnings(Shell.Result r)
     {
-        var warns = r.Output.Split('\n').Select(l => l.Trim()).Where(l => l.StartsWith("WARN:")).Select(l => l[5..]);
-        var s = string.Join("\n", warns);
-        if (!r.Ok && string.IsNullOrEmpty(s)) s = "PowerShell 返回错误：" + r.Output;
+        var s = string.Join("\n", Shell.Warnings(r.Output));
+        if (!r.Ok && string.IsNullOrEmpty(s)) s = L.F("PowerShell 返回错误：{0}", r.Output);
         return s;
     }
 }

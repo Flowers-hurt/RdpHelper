@@ -3,25 +3,26 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    Title="访问控制">
+    xmlns:l="clr-namespace:RdpHelper.Localization"
+    Title="{l:T '访问控制'}">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40,4,40,40" MaxWidth="1000">
-            <TextBlock Style="{StaticResource PageTitle}" Text="访问控制" />
+            <TextBlock Style="{StaticResource PageTitle}" Text="{l:T '访问控制'}" />
 
             <ui:InfoBar
-                Title="基于 Windows 防火墙的 IP 黑白名单"
+                Title="{l:T '基于 Windows 防火墙的 IP 黑白名单'}"
                 Margin="0,0,0,4"
                 IsClosable="False"
                 IsOpen="True"
-                Message="白名单留空 = 允许所有地址；填写后只有名单内的地址能连接。黑名单始终优先拦截。每行一条，支持 IP、网段 (192.168.1.0/24)、范围 (10.0.0.1-10.0.0.50) 和关键字 LocalSubnet（本地子网）。经内网穿透进来的连接来源是本机 127.0.0.1，不受名单限制。"
+                Message="{l:T '白名单留空 = 允许所有地址；填写后只有名单内的地址能连接。黑名单始终优先拦截。每行一条，支持 IP、网段 (192.168.1.0/24)、范围 (10.0.0.1-10.0.0.50) 和关键字 LocalSubnet（本地子网）。经内网穿透进来的连接来源是本机 127.0.0.1，不受名单限制。'}"
                 Severity="Informational" />
 
             <!--  远程桌面  -->
-            <TextBlock Style="{StaticResource SectionHeader}" Text="远程桌面" />
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '远程桌面'}" />
             <ui:CardExpander Icon="{ui:SymbolIcon Desktop24}" IsExpanded="True">
                 <ui:CardExpander.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="远程桌面 IP 名单" />
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '远程桌面 IP 名单'}" />
                         <TextBlock x:Name="RdpSummary" Style="{StaticResource CardDesc}" />
                     </StackPanel>
                 </ui:CardExpander.Header>
@@ -36,8 +37,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Style="{StaticResource CardTitle}" Text="白名单（仅允许）" />
-                    <TextBlock Grid.Column="2" Style="{StaticResource CardTitle}" Text="黑名单（拒绝）" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '白名单（仅允许）'}" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource CardTitle}" Text="{l:T '黑名单（拒绝）'}" />
                     <ui:TextBox
                         x:Name="RdpAllowBox"
                         Grid.Row="1"
@@ -45,7 +46,6 @@
                         Margin="0,6,0,8"
                         AcceptsReturn="True"
                         FontFamily="Consolas, Cascadia Mono"
-                        PlaceholderText="留空 = 允许所有&#x0a;192.168.1.0/24&#x0a;LocalSubnet"
                         TextWrapping="NoWrap"
                         VerticalScrollBarVisibility="Auto" />
                     <ui:TextBox
@@ -56,7 +56,6 @@
                         Margin="0,6,0,8"
                         AcceptsReturn="True"
                         FontFamily="Consolas, Cascadia Mono"
-                        PlaceholderText="例：&#x0a;203.0.113.7&#x0a;198.51.100.0/24"
                         TextWrapping="NoWrap"
                         VerticalScrollBarVisibility="Auto" />
                     <WrapPanel Grid.Row="2" Grid.ColumnSpan="3">
@@ -64,16 +63,16 @@
                             Margin="0,0,8,0"
                             Appearance="Primary"
                             Click="SaveRdp_Click"
-                            Content="保存并应用"
+                            Content="{l:T '保存并应用'}"
                             Icon="{ui:SymbolIcon Save24}" />
                         <ui:Button
                             Margin="0,0,8,0"
                             Click="AddSubnetRdp_Click"
-                            Content="白名单加入本机局域网网段"
+                            Content="{l:T '白名单加入本机局域网网段'}"
                             Icon="{ui:SymbolIcon Add24}" />
                         <ui:Button
                             Click="ClearRdp_Click"
-                            Content="清空名单"
+                            Content="{l:T '清空名单'}"
                             Icon="{ui:SymbolIcon Delete24}" />
                     </WrapPanel>
                 </Grid>
@@ -84,7 +83,7 @@
             <ui:CardExpander Icon="{ui:SymbolIcon WindowConsole20}" IsExpanded="True">
                 <ui:CardExpander.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="SSH IP 名单" />
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T 'SSH IP 名单'}" />
                         <TextBlock x:Name="SshSummary" Style="{StaticResource CardDesc}" />
                     </StackPanel>
                 </ui:CardExpander.Header>
@@ -99,8 +98,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Style="{StaticResource CardTitle}" Text="白名单（仅允许）" />
-                    <TextBlock Grid.Column="2" Style="{StaticResource CardTitle}" Text="黑名单（拒绝）" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '白名单（仅允许）'}" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource CardTitle}" Text="{l:T '黑名单（拒绝）'}" />
                     <ui:TextBox
                         x:Name="SshAllowBox"
                         Grid.Row="1"
@@ -108,7 +107,7 @@
                         Margin="0,6,0,8"
                         AcceptsReturn="True"
                         FontFamily="Consolas, Cascadia Mono"
-                        PlaceholderText="留空 = 允许所有"
+                        PlaceholderText="{l:T '留空 = 允许所有'}"
                         TextWrapping="NoWrap"
                         VerticalScrollBarVisibility="Auto" />
                     <ui:TextBox
@@ -119,7 +118,7 @@
                         Margin="0,6,0,8"
                         AcceptsReturn="True"
                         FontFamily="Consolas, Cascadia Mono"
-                        PlaceholderText="每行一个 IP / 网段"
+                        PlaceholderText="{l:T '每行一个 IP / 网段'}"
                         TextWrapping="NoWrap"
                         VerticalScrollBarVisibility="Auto" />
                     <WrapPanel Grid.Row="2" Grid.ColumnSpan="3">
@@ -127,16 +126,16 @@
                             Margin="0,0,8,0"
                             Appearance="Primary"
                             Click="SaveSsh_Click"
-                            Content="保存并应用"
+                            Content="{l:T '保存并应用'}"
                             Icon="{ui:SymbolIcon Save24}" />
                         <ui:Button
                             Margin="0,0,8,0"
                             Click="AddSubnetSsh_Click"
-                            Content="白名单加入本机局域网网段"
+                            Content="{l:T '白名单加入本机局域网网段'}"
                             Icon="{ui:SymbolIcon Add24}" />
                         <ui:Button
                             Click="ClearSsh_Click"
-                            Content="清空名单"
+                            Content="{l:T '清空名单'}"
                             Icon="{ui:SymbolIcon Delete24}" />
                     </WrapPanel>
                 </Grid>

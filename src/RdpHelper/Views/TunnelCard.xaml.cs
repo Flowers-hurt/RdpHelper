@@ -51,8 +51,8 @@ public partial class TunnelCard : UserControl
     {
         bool installed = _p.IsInstalled;
         bool running = _p.IsRunning;
-        PathText.Text = installed ? "已下载：" + _p.ExePath : "未下载 · 将下载到 " + _p.ToolDir + "（不随安装包分发，按需下载）";
-        DownloadButton.Content = installed ? "重新下载 / 更新" : "下载组件";
+        PathText.Text = installed ? L.F("已下载：{0}", _p.ExePath) : L.F("未下载 · 将下载到 {0}（不随安装包分发，按需下载）", _p.ToolDir);
+        DownloadButton.Content = installed ? L.T("重新下载 / 更新") : L.T("下载组件");
         UninstallButton.IsEnabled = installed && !running;
         StartButton.IsEnabled = installed && !running;
         StopButton.IsEnabled = running;
@@ -61,7 +61,7 @@ public partial class TunnelCard : UserControl
         if (running && _p.PublicAddress != null)
         {
             StateDot.Fill = RemotePage.Green;
-            StateText.Text = "运行中";
+            StateText.Text = L.T("运行中");
             AddressPanel.Visibility = Visibility.Visible;
             AddressText.Text = _p.PublicAddress;
             Expander.IsExpanded = true;
@@ -69,12 +69,12 @@ public partial class TunnelCard : UserControl
         else
         {
             StateDot.Fill = running ? RemotePage.Orange : installed ? RemotePage.Gray : RemotePage.Gray;
-            StateText.Text = running ? "连接中…" : installed ? "已下载" : "未下载";
+            StateText.Text = running ? L.T("连接中…") : installed ? L.T("已下载") : L.T("未下载");
             AddressPanel.Visibility = Visibility.Collapsed;
         }
 
         if (_p is NgrokProvider ng)
-            TokenState.Text = ng.HasToken ? "✓ 已配置" : "未配置";
+            TokenState.Text = ng.HasToken ? L.T("✓ 已配置") : L.T("未配置");
     }
 
     private async void Download_Click(object sender, RoutedEventArgs e)
@@ -92,12 +92,12 @@ public partial class TunnelCard : UserControl
             });
             await _p.InstallAsync(progress);
             var ver = await _p.GetVersionAsync();
-            Notify.Success(_p.Name + " 下载完成", ver);
+            Notify.Success(L.F("{0} 下载完成", _p.Name), ver);
         }
         catch (Exception ex)
         {
-            Notify.Error("下载失败", ex.Message + "\n网络不好时可以手动下载后点「导入本地 exe」。");
-            AppendLog("下载失败：" + ex.Message);
+            Notify.Error(L.T("下载失败"), ex.Message + "\n" + L.T("网络不好时可以手动下载后点「导入本地 exe」。"));
+            AppendLog(L.F("下载失败：{0}", ex.Message));
         }
         finally
         {
@@ -111,22 +111,22 @@ public partial class TunnelCard : UserControl
     {
         var dlg = new OpenFileDialog
         {
-            Title = "选择 " + _p.ExeName,
-            Filter = $"{_p.ExeName}|{_p.ExeName}|可执行文件 (*.exe)|*.exe",
+            Title = L.F("选择 {0}", _p.ExeName),
+            Filter = $"{_p.ExeName}|{_p.ExeName}|{L.T("可执行文件")} (*.exe)|*.exe",
         };
         if (dlg.ShowDialog() != true) return;
         try
         {
             _p.ImportExe(dlg.FileName);
-            Notify.Success("已导入 " + _p.Name);
+            Notify.Success(L.F("已导入 {0}", _p.Name));
         }
-        catch (Exception ex) { Notify.Error("导入失败", ex.Message); }
+        catch (Exception ex) { Notify.Error(L.T("导入失败"), ex.Message); }
     }
 
     private void Uninstall_Click(object sender, RoutedEventArgs e)
     {
         _p.Uninstall();
-        Notify.Info("已删除 " + _p.Name + " 组件");
+        Notify.Info(L.F("已删除 {0} 组件", _p.Name));
     }
 
     private void Homepage_Click(object sender, RoutedEventArgs e) =>
@@ -135,14 +135,14 @@ public partial class TunnelCard : UserControl
     private async void SaveToken_Click(object sender, RoutedEventArgs e)
     {
         if (_p is not NgrokProvider ng) return;
-        if (!ng.IsInstalled) { Notify.Warn("请先下载 ngrok"); return; }
+        if (!ng.IsInstalled) { Notify.Warn(L.T("请先下载 ngrok")); return; }
         try
         {
             await ng.SaveTokenAsync(TokenBox.Password);
             TokenBox.Password = "";
-            Notify.Success("Authtoken 已保存");
+            Notify.Success(L.T("Authtoken 已保存"));
         }
-        catch (Exception ex) { Notify.Error("保存失败", ex.Message); }
+        catch (Exception ex) { Notify.Error(L.T("保存失败"), ex.Message); }
         UpdateState();
     }
 
@@ -153,16 +153,16 @@ public partial class TunnelCard : UserControl
         if (target == RemoteKind.Rdp)
         {
             port = RdpService.GetPort();
-            if (!RdpService.IsEnabled()) Notify.Warn("远程桌面还没开启", "穿透已启动，但需要先在「远程桌面」页开启才能连接");
+            if (!RdpService.IsEnabled()) Notify.Warn(L.T("远程桌面还没开启"), L.T("穿透已启动，但需要先在「远程桌面」页开启才能连接"));
         }
         else
         {
             port = SshService.GetPort();
-            if (!await SshService.IsRunningAsync()) Notify.Warn("SSH 服务还没开启", "穿透已启动，但需要先在「SSH」页开启才能连接");
+            if (!await SshService.IsRunningAsync()) Notify.Warn(L.T("SSH 服务还没开启"), L.T("穿透已启动，但需要先在「SSH」页开启才能连接"));
         }
         if (_p is NgrokProvider { HasToken: false })
         {
-            Notify.Warn("请先填写 ngrok Authtoken");
+            Notify.Warn(L.T("请先填写 ngrok Authtoken"));
             return;
         }
 
@@ -172,9 +172,9 @@ public partial class TunnelCard : UserControl
         try
         {
             var addr = await _p.StartAsync(port, target);
-            Notify.Success(_p.Name + " 已连通", addr);
+            Notify.Success(L.F("{0} 已连通", _p.Name), addr);
         }
-        catch (Exception ex) { Notify.Error(_p.Name + " 启动失败", ex.Message); }
+        catch (Exception ex) { Notify.Error(L.F("{0} 启动失败", _p.Name), ex.Message); }
         finally
         {
             StartBusy.Visibility = Visibility.Collapsed;
@@ -185,18 +185,18 @@ public partial class TunnelCard : UserControl
     private void Stop_Click(object sender, RoutedEventArgs e)
     {
         _p.Stop();
-        Notify.Info(_p.Name + " 已停止");
+        Notify.Info(L.F("{0} 已停止", _p.Name));
     }
 
     private void CopyAddress_Click(object sender, RoutedEventArgs e)
     {
         if (_p.PublicAddress != null && RemoteInfo.CopyToClipboard(_p.PublicAddress))
-            Notify.Success("已复制公网地址", _p.PublicAddress);
+            Notify.Success(L.T("已复制公网地址"), _p.PublicAddress);
     }
 
     private async void CopyAll_Click(object sender, RoutedEventArgs e)
     {
         var text = RemoteInfo.Build(await SshService.IsRunningAsync());
-        if (RemoteInfo.CopyToClipboard(text)) Notify.Success("已复制完整连接信息", "包含局域网和公网地址，可直接发给对方");
+        if (RemoteInfo.CopyToClipboard(text)) Notify.Success(L.T("已复制完整连接信息"), L.T("包含局域网和公网地址，可直接发给对方"));
     }
 }

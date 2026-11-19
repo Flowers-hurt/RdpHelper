@@ -21,6 +21,9 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Check translations (zh → en)
+        run: python tools/check_i18n.py
+
       - name: Version
         id: ver
         shell: pwsh
@@ -50,10 +53,16 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $p = Start-Process -FilePath publish\RdpHelper.exe -ArgumentList '--gui-selftest', "$PWD\screenshots" -Wait -PassThru
-          Get-Content screenshots\gui-selftest.txt -ErrorAction SilentlyContinue
-          Get-ChildItem screenshots
-          if ($p.ExitCode -ne 0) { exit 1 }
+          $fail = 0
+          foreach ($lang in 'zh', 'en') {
+            $dir = if ($lang -eq 'zh') { "$PWD\screenshots" } else { "$PWD\screenshots\en" }
+            $p = Start-Process -FilePath publish\RdpHelper.exe -ArgumentList '--gui-selftest', $dir, '--lang', $lang -Wait -PassThru
+            "== $lang (exit $($p.ExitCode)) =="
+            Get-Content "$dir\gui-selftest.txt" -Encoding UTF8 -ErrorAction SilentlyContinue
+            if ($p.ExitCode -ne 0) { $fail = 1 }
+          }
+          Get-ChildItem screenshots -Recurse -Filter *.png | ForEach-Object { $_.FullName }
+          exit $fail
 
       - name: Build installer (Inno Setup)
         shell: pwsh
@@ -72,7 +81,7 @@ jobs:
           path: |
             dist/*
             selftest.json
-            screenshots/*
+            screenshots/**
 
       - name: GitHub Release
         if: github.ref_type == 'tag'

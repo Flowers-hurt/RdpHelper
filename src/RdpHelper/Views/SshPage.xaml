@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:l="clr-namespace:RdpHelper.Localization"
     Title="SSH">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40,4,40,40" MaxWidth="1000">
@@ -32,8 +33,8 @@
                             FontSize="20"
                             FontWeight="SemiBold"
                             Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                            Text="OpenSSH 服务器" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="Windows 内置的 SSH 服务端，可用命令行远程管理这台电脑，也支持 SFTP / scp 传文件、端口转发。" />
+                            Text="{l:T 'OpenSSH 服务器'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T 'Windows 内置的 SSH 服务端，可用命令行远程管理这台电脑，也支持 SFTP / scp 传文件、端口转发。'}" />
                         <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                             <Ellipse
                                 x:Name="StatusDot"
@@ -45,13 +46,13 @@
                                 x:Name="StatusText"
                                 FontSize="13"
                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                Text="正在读取状态…" />
+                                Text="{l:T '正在读取状态…'}" />
                         </StackPanel>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <TextBlock Style="{StaticResource SectionHeader}" Text="服务" />
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '服务'}" />
 
             <ui:CardControl
                 x:Name="InstallCard"
@@ -59,11 +60,11 @@
                 Icon="{ui:SymbolIcon ArrowDownload24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="安装 OpenSSH 服务器" />
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '安装 OpenSSH 服务器'}" />
                         <TextBlock
                             x:Name="InstallDesc"
                             Style="{StaticResource CardDesc}"
-                            Text="通过 Windows「可选功能」安装，失败时自动改用微软官方 Win32-OpenSSH 安装包。可能需要几分钟。" />
+                            Text="{l:T '通过 Windows「可选功能」安装，失败时自动改用微软官方 Win32-OpenSSH 安装包。可能需要几分钟。'}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
@@ -78,7 +79,7 @@
                         x:Name="InstallButton"
                         Appearance="Primary"
                         Click="Install_Click"
-                        Content="一键安装"
+                        Content="{l:T '一键安装'}"
                         Icon="{ui:SymbolIcon ArrowDownload24}" />
                 </StackPanel>
             </ui:CardControl>
@@ -86,8 +87,8 @@
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon WindowConsole20}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="SSH 服务" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="开启后 sshd 设为开机自启，并按「访问控制」中的名单放行防火墙" />
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T 'SSH 服务'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '开启后 sshd 设为开机自启，并按「访问控制」中的名单放行防火墙'}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
@@ -101,8 +102,8 @@
                     <ui:ToggleSwitch
                         x:Name="SshToggle"
                         Click="SshToggle_Click"
-                        OffContent="关"
-                        OnContent="开" />
+                        OffContent="{l:T '关'}"
+                        OnContent="{l:T '开'}" />
                 </StackPanel>
             </ui:CardControl>
 
@@ -114,8 +115,8 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource CardTitle}" Text="SSH 端口" />
-                            <TextBlock Style="{StaticResource CardDesc}" Text="默认 22；修改 sshd_config 的 Port 并重启 sshd" />
+                            <TextBlock Style="{StaticResource CardTitle}" Text="{l:T 'SSH 端口'}" />
+                            <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '默认 22；修改 sshd_config 的 Port 并重启 sshd'}" />
                         </StackPanel>
                         <TextBlock
                             x:Name="PortText"
@@ -140,17 +141,17 @@
                             Margin="0,0,8,8"
                             Appearance="Primary"
                             Click="ApplyPort_Click"
-                            Content="应用新端口"
+                            Content="{l:T '应用新端口'}"
                             Icon="{ui:SymbolIcon Checkmark24}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Click="RandomPort_Click"
-                            Content="随机生成"
+                            Content="{l:T '随机生成'}"
                             Icon="{ui:SymbolIcon ArrowShuffle24}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Click="DefaultPort_Click"
-                            Content="恢复默认 22"
+                            Content="{l:T '恢复默认 22'}"
                             Icon="{ui:SymbolIcon ArrowReset24}" />
                         <ui:ProgressRing
                             x:Name="PortBusy"
@@ -164,7 +165,7 @@
                 </StackPanel>
             </ui:CardExpander>
 
-            <TextBlock Style="{StaticResource SectionHeader}" Text="连接命令" />
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '连接命令'}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Code24}">
                 <ui:CardControl.Header>
                     <StackPanel>
@@ -174,12 +175,12 @@
                             FontSize="14"
                             Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                             Text="ssh user@192.168.1.2" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="密码为这台电脑的 Windows 账户密码；管理员账户的公钥请放在 C:\ProgramData\ssh\administrators_authorized_keys" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '密码为这台电脑的 Windows 账户密码；管理员账户的公钥请放在 C:\\ProgramData\\ssh\\administrators_authorized_keys'}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:Button
                     Click="CopyCmd_Click"
-                    Content="复制命令"
+                    Content="{l:T '复制命令'}"
                     Icon="{ui:SymbolIcon Copy24}" />
             </ui:CardControl>
         </StackPanel>

@@ -19,10 +19,10 @@ public partial class RemotePage : Page
     {
         var ed = RdpService.GetEdition();
         MachineText.Text = Environment.MachineName;
-        OsText.Text = $"{ed.ProductName} {ed.DisplayVersion}（内部版本 {ed.Build}）· 用户 {RemoteInfo.UserName()}";
+        OsText.Text = L.F("{0} {1}（内部版本 {2}）· 用户 {3}", ed.ProductName, ed.DisplayVersion, ed.Build, RemoteInfo.UserName());
         if (ed.IsHome)
         {
-            EditionBar.Message = $"{ed.ProductName} 家庭版没有远程桌面服务端，只能连接别人，不能被别人连接。可升级到专业版，或使用下方的 SSH 功能。";
+            EditionBar.Message = L.F("{0} 家庭版没有远程桌面服务端，只能连接别人，不能被别人连接。可升级到专业版，或使用 SSH 功能。", ed.ProductName);
             EditionBar.IsOpen = true;
         }
         RemoteSessionBar.IsOpen = RdpService.IsInRemoteSession;
@@ -37,9 +37,9 @@ public partial class RemotePage : Page
 
         bool listening = await Task.Run(() => RdpService.IsListening(port));
         SetStatus(StatusDot, StatusText, on, listening,
-            $"远程桌面已开启 · 正在监听端口 {port}",
-            $"远程桌面已开启 · 端口 {port} 暂未监听（服务启动中或被占用）",
-            "远程桌面已关闭");
+            L.F("远程桌面已开启 · 正在监听端口 {0}", port),
+            L.F("远程桌面已开启 · 端口 {0} 暂未监听（服务启动中或被占用）", port),
+            L.T("远程桌面已关闭"));
 
         var lans = await Task.Run(NetworkService.GetLanAddresses);
         LanList.ItemsSource = lans;
@@ -53,7 +53,7 @@ public partial class RemotePage : Page
     {
         bool want = RdpToggle.IsChecked == true;
         if (!want && RdpService.IsInRemoteSession &&
-            !Confirm("你正在远程使用这台电脑，关闭后将无法再远程连回来。确定关闭吗？"))
+            !Confirm(L.T("你正在远程使用这台电脑，关闭后将无法再远程连回来。确定关闭吗？")))
         {
             RdpToggle.IsChecked = true;
             return;
@@ -62,7 +62,7 @@ public partial class RemotePage : Page
         {
             var warn = await RdpService.EnableAsync(want);
             if (want) await RdpService.WaitListeningAsync(RdpService.GetPort(), true, 10_000);
-            Done(want ? "远程桌面已开启" : "远程桌面已关闭", warn);
+            Done(want ? L.T("远程桌面已开启") : L.T("远程桌面已关闭"), warn);
         });
     }
 
@@ -71,16 +71,16 @@ public partial class RemotePage : Page
         try
         {
             RdpService.SetNla(NlaToggle.IsChecked == true);
-            Notify.Success(NlaToggle.IsChecked == true ? "已开启网络级别身份验证" : "已关闭网络级别身份验证");
+            Notify.Success(NlaToggle.IsChecked == true ? L.T("已开启网络级别身份验证") : L.T("已关闭网络级别身份验证"));
         }
-        catch (Exception ex) { Notify.Error("设置失败", ex.Message); }
+        catch (Exception ex) { Notify.Error(L.T("设置失败"), ex.Message); }
     }
 
     private async void ApplyPort_Click(object sender, RoutedEventArgs e)
     {
         if (!int.TryParse(PortBox.Text.Trim(), out var port))
         {
-            Notify.Warn("端口格式不对", "请输入 1024–65535 之间的数字");
+            Notify.Warn(L.T("端口格式不对"), L.T("请输入 1024–65535 之间的数字"));
             return;
         }
         await ChangePort(port);
@@ -98,24 +98,24 @@ public partial class RemotePage : Page
     {
         if (port == RdpService.GetPort())
         {
-            Notify.Info("端口没有变化", $"当前已经是 {port}");
+            Notify.Info(L.T("端口没有变化"), L.F("当前已经是 {0}", port));
             return;
         }
-        if (RdpService.IsInRemoteSession && !Confirm($"修改端口会重启远程桌面服务，你当前的远程连接会断开。\n之后请用  IP:{port}  重新连接。继续吗？"))
+        if (RdpService.IsInRemoteSession && !Confirm(L.F("修改端口会重启远程桌面服务，你当前的远程连接会断开。\n之后请用  IP:{0}  重新连接。继续吗？", port)))
             return;
         await Busy(PortBusy, null, async () =>
         {
             var warn = await RdpService.SetPortAsync(port);
-            Done($"远程桌面端口已改为 {port}", warn);
+            Done(L.F("远程桌面端口已改为 {0}", port), warn);
         });
     }
 
     private void Copy_Click(object sender, RoutedEventArgs e)
     {
         if (RemoteInfo.CopyToClipboard(PreviewBox.Text))
-            Notify.Success("已复制远程信息", "可以直接粘贴发给对方（不含密码）");
+            Notify.Success(L.T("已复制远程信息"), L.T("可以直接粘贴发给对方（不含密码）"));
         else
-            Notify.Error("复制失败", "剪贴板被其他程序占用，请重试");
+            Notify.Error(L.T("复制失败"), L.T("剪贴板被其他程序占用，请重试"));
     }
 
     private void CopyIp_Click(object sender, RoutedEventArgs e)
@@ -124,7 +124,7 @@ public partial class RemotePage : Page
         {
             int port = RdpService.GetPort();
             var text = port == RdpService.DefaultPort ? ip : $"{ip}:{port}";
-            if (RemoteInfo.CopyToClipboard(text)) Notify.Success("已复制", text);
+            if (RemoteInfo.CopyToClipboard(text)) Notify.Success(L.T("已复制"), text);
         }
     }
 
@@ -144,7 +144,7 @@ public partial class RemotePage : Page
         if (control != null) control.IsEnabled = false;
         IsEnabled = false;
         try { await action(); }
-        catch (Exception ex) { Notify.Error("操作失败", ex.Message); }
+        catch (Exception ex) { Notify.Error(L.T("操作失败"), ex.Message); }
         finally
         {
             ring.Visibility = Visibility.Collapsed;
@@ -170,7 +170,7 @@ public partial class RemotePage : Page
     internal static void Done(string title, string warn)
     {
         if (string.IsNullOrWhiteSpace(warn)) Notify.Success(title);
-        else Notify.Warn(title + "（有警告）", warn);
+        else Notify.Warn(L.F("{0}（有警告）", title), warn);
     }
 
     internal static bool Confirm(string message) =>

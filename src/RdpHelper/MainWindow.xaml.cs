@@ -7,12 +7,12 @@ namespace RdpHelper;
 
 public partial class MainWindow : FluentWindow
 {
-    public MainWindow()
+    public MainWindow(Type? startPage = null)
     {
         InitializeComponent();
         App.ApplyAppearance(this);
         Notify.Init(SnackbarPresenter);
-        Loaded += (_, _) => RootNavigation.Navigate(typeof(RemotePage));
+        Loaded += (_, _) => RootNavigation.Navigate(startPage ?? typeof(RemotePage));
     }
 
     public bool NavigateTo(Type pageType) => RootNavigation.Navigate(pageType);

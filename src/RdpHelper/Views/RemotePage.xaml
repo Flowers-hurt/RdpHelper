@@ -3,25 +3,26 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    Title="远程桌面">
+    xmlns:l="clr-namespace:RdpHelper.Localization"
+    Title="{l:T '远程桌面'}">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40,4,40,40" MaxWidth="1000">
-            <TextBlock Style="{StaticResource PageTitle}" Text="远程桌面" />
+            <TextBlock Style="{StaticResource PageTitle}" Text="{l:T '远程桌面'}" />
 
             <ui:InfoBar
                 x:Name="EditionBar"
-                Title="当前系统不支持作为远程桌面主机"
+                Title="{l:T '当前系统不支持作为远程桌面主机'}"
                 Margin="0,0,0,12"
                 IsClosable="False"
                 IsOpen="False"
                 Severity="Warning" />
             <ui:InfoBar
                 x:Name="RemoteSessionBar"
-                Title="你正在通过远程桌面使用这台电脑"
+                Title="{l:T '你正在通过远程桌面使用这台电脑'}"
                 Margin="0,0,0,12"
                 IsClosable="True"
                 IsOpen="False"
-                Message="修改端口或关闭远程桌面会立即断开当前连接，请确认能用新端口重新连回来。"
+                Message="{l:T '修改端口或关闭远程桌面会立即断开当前连接，请确认能用新端口重新连回来。'}"
                 Severity="Informational" />
 
             <!--  顶部：电脑卡片（仿 Win11 设置）  -->
@@ -61,7 +62,7 @@
                                 x:Name="StatusText"
                                 FontSize="13"
                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                Text="正在读取状态…" />
+                                Text="{l:T '正在读取状态…'}" />
                         </StackPanel>
                     </StackPanel>
                     <ui:Button
@@ -70,18 +71,18 @@
                         VerticalAlignment="Center"
                         Appearance="Primary"
                         Click="Copy_Click"
-                        Content="一键复制远程信息"
+                        Content="{l:T '一键复制远程信息'}"
                         Icon="{ui:SymbolIcon Copy24}" />
                 </Grid>
             </Border>
 
-            <TextBlock Style="{StaticResource SectionHeader}" Text="连接" />
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '连接'}" />
 
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Desktop24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="远程桌面" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="允许其他设备通过远程桌面应用 (mstsc) 连接并控制这台电脑" />
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '远程桌面'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '允许其他设备通过远程桌面应用 (mstsc) 连接并控制这台电脑'}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
@@ -95,23 +96,23 @@
                     <ui:ToggleSwitch
                         x:Name="RdpToggle"
                         Click="RdpToggle_Click"
-                        OffContent="关"
-                        OnContent="开" />
+                        OffContent="{l:T '关'}"
+                        OnContent="{l:T '开'}" />
                 </StackPanel>
             </ui:CardControl>
 
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon ShieldCheckmark24}">
                 <ui:CardControl.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="要求设备使用网络级别身份验证 (NLA) 进行连接" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="连接前先验证账户密码，更安全，推荐保持开启；旧版客户端连不上时可临时关闭" />
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '要求设备使用网络级别身份验证 (NLA) 进行连接'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '连接前先验证账户密码，更安全，推荐保持开启；旧版客户端连不上时可临时关闭'}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch
                     x:Name="NlaToggle"
                     Click="NlaToggle_Click"
-                    OffContent="关"
-                    OnContent="开" />
+                    OffContent="{l:T '关'}"
+                    OnContent="{l:T '开'}" />
             </ui:CardControl>
 
             <ui:CardExpander Margin="0,0,0,4" Icon="{ui:SymbolIcon NumberSymbol24}" IsExpanded="True">
@@ -122,8 +123,8 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource CardTitle}" Text="远程桌面端口" />
-                            <TextBlock Style="{StaticResource CardDesc}" Text="默认 3389；改成不常见的端口可减少公网扫描和暴力破解" />
+                            <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '远程桌面端口'}" />
+                            <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '默认 3389；改成不常见的端口可减少公网扫描和暴力破解'}" />
                         </StackPanel>
                         <TextBlock
                             x:Name="PortText"
@@ -148,17 +149,17 @@
                             Margin="0,0,8,8"
                             Appearance="Primary"
                             Click="ApplyPort_Click"
-                            Content="应用新端口"
+                            Content="{l:T '应用新端口'}"
                             Icon="{ui:SymbolIcon Checkmark24}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Click="RandomPort_Click"
-                            Content="随机生成"
+                            Content="{l:T '随机生成'}"
                             Icon="{ui:SymbolIcon ArrowShuffle24}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Click="DefaultPort_Click"
-                            Content="恢复默认 3389"
+                            Content="{l:T '恢复默认 3389'}"
                             Icon="{ui:SymbolIcon ArrowReset24}" />
                         <ui:ProgressRing
                             x:Name="PortBusy"
@@ -170,11 +171,11 @@
                     </WrapPanel>
                     <TextBlock
                         Style="{StaticResource CardDesc}"
-                        Text="应用后会自动：写入注册表 PortNumber → 更新防火墙放行规则（TCP+UDP）→ 重启远程桌面服务。重启时已连接的远程会话会断开，用新端口重连即可（地址写成 IP:端口）。" />
+                        Text="{l:T '应用后会自动：写入注册表 PortNumber → 更新防火墙放行规则（TCP+UDP）→ 重启远程桌面服务。重启时已连接的远程会话会断开，用新端口重连即可（地址写成 IP:端口）。'}" />
                 </StackPanel>
             </ui:CardExpander>
 
-            <TextBlock Style="{StaticResource SectionHeader}" Text="本机局域网地址" />
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '本机局域网地址'}" />
             <ItemsControl x:Name="LanList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -206,7 +207,7 @@
                             </ui:CardControl.Header>
                             <ui:Button
                                 Click="CopyIp_Click"
-                                Content="复制地址"
+                                Content="{l:T '复制地址'}"
                                 Icon="{ui:SymbolIcon Copy24}"
                                 Tag="{Binding Ip}" />
                         </ui:CardControl>
@@ -216,10 +217,10 @@
             <TextBlock
                 x:Name="NoLanText"
                 Style="{StaticResource CardDesc}"
-                Text="没有检测到可用的局域网 IPv4 地址，请检查网络连接。"
+                Text="{l:T '没有检测到可用的局域网 IPv4 地址，请检查网络连接。'}"
                 Visibility="Collapsed" />
 
-            <TextBlock Style="{StaticResource SectionHeader}" Text="将要复制的内容" />
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '将要复制的内容'}" />
             <ui:TextBox
                 x:Name="PreviewBox"
                 MinHeight="120"
@@ -231,11 +232,11 @@
                 <ui:Button
                     Margin="0,0,8,0"
                     Click="Refresh_Click"
-                    Content="刷新"
+                    Content="{l:T '刷新'}"
                     Icon="{ui:SymbolIcon ArrowClockwise24}" />
                 <ui:Button
                     Click="OpenSysSettings_Click"
-                    Content="打开系统远程桌面设置"
+                    Content="{l:T '打开系统远程桌面设置'}"
                     Icon="{ui:SymbolIcon Open24}" />
             </WrapPanel>
         </StackPanel>

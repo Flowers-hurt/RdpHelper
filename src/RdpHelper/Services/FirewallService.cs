@@ -43,8 +43,8 @@ public static class FirewallService
     {
         var (allow, deny) = GetPolicy(k);
         var r = await Shell.PowerShellAsync(BuildScript(k, port, enabled, allow, deny));
-        var warns = r.Output.Split('\n').Select(l => l.Trim()).Where(l => l.StartsWith("WARN:")).Select(l => l[5..]).ToList();
-        if (!r.Ok && warns.Count == 0) warns.Add("防火墙脚本返回错误：" + r.Output);
+        var warns = Shell.Warnings(r.Output);
+        if (!r.Ok && warns.Count == 0) warns.Add(L.F("防火墙脚本返回错误：{0}", r.Output));
         return string.Join("\n", warns);
     }
 
@@ -106,18 +106,18 @@ public static class FirewallService
                 int max = ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 128 : 32;
                 if (bits >= 0 && bits <= max) return true;
             }
-            error = $"“{s}” 不是有效的网段（例：192.168.1.0/24）";
+            error = L.F("“{0}” 不是有效的网段（例：192.168.1.0/24）", s);
             return false;
         }
         if (s.Contains('-') && !s.Contains(':'))
         {
             var parts = s.Split('-');
             if (parts.Length == 2 && StrictIp(parts[0].Trim(), out _) && StrictIp(parts[1].Trim(), out _)) return true;
-            error = $"“{s}” 不是有效的地址范围（例：10.0.0.1-10.0.0.50）";
+            error = L.F("“{0}” 不是有效的地址范围（例：10.0.0.1-10.0.0.50）", s);
             return false;
         }
         if (StrictIp(s, out _)) return true;
-        error = $"“{s}” 不是有效的 IP 地址";
+        error = L.F("“{0}” 不是有效的 IP 地址", s);
         return false;
     }
 
