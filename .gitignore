@@ -1,0 +1,10 @@
+bin/
+obj/
+publish/
+dist/
+screenshots/
+selftest.json
+*.user
+.vs/
+.idea/
+.DS_Store

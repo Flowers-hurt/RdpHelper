@@ -1,0 +1,82 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}".TrimStart('v') } else { ([xml](Get-Content src/RdpHelper/RdpHelper.csproj)).Project.PropertyGroup.Version | Select-Object -First 1 }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Version $v"
+
+      - name: Publish (self-contained single file)
+        run: >
+          dotnet publish src/RdpHelper/RdpHelper.csproj -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+          -p:Version=${{ steps.ver.outputs.version }} -o publish
+
+      - name: Engine self-test (real RDP / SSH / firewall / tunnels)
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath publish\RdpHelper.exe -ArgumentList '--selftest', "$PWD\selftest.json" -Wait -PassThru
+          if (Test-Path selftest.json) {
+            $r = Get-Content selftest.json -Raw -Encoding UTF8 | ConvertFrom-Json
+            foreach ($s in $r.steps) { "{0} [{1,6} ms] {2}`n      {3}" -f ($(if ($s.Ok) { 'PASS' } else { 'FAIL' })), $s.Ms, $s.Name, $s.Detail }
+            "passed=$($r.passed) failed=$($r.failed)"
+          } else { "selftest.json not generated" }
+          if ($p.ExitCode -ne 0) { exit 1 }
+
+      - name: GUI self-test + HiDPI screenshots
+        if: always()
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath publish\RdpHelper.exe -ArgumentList '--gui-selftest', "$PWD\screenshots" -Wait -PassThru
+          Get-Content screenshots\gui-selftest.txt -ErrorAction SilentlyContinue
+          Get-ChildItem screenshots
+          if ($p.ExitCode -ne 0) { exit 1 }
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer\RdpHelper.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Compress-Archive -Path publish\RdpHelper.exe, LICENSE -DestinationPath "dist\RdpHelper-${{ steps.ver.outputs.version }}-portable-x64.zip"
+          Get-ChildItem dist
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: RdpHelper-${{ steps.ver.outputs.version }}
+          path: |
+            dist/*
+            selftest.json
+            screenshots/*
+
+      - name: GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

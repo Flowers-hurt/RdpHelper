@@ -1,0 +1,70 @@
+<Page
+    x:Class="RdpHelper.Views.TunnelPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="内网穿透">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,4,40,40" MaxWidth="1000">
+            <TextBlock Style="{StaticResource PageTitle}" Text="内网穿透" />
+
+            <ui:InfoBar
+                Title="组件按需下载，不打进安装包"
+                Margin="0,0,0,4"
+                IsClosable="False"
+                IsOpen="True"
+                Message="安装包里不带任何穿透程序。需要时选择一个服务商，点「下载组件」从官方地址获取；网络不好可手动下载后「导入本地 exe」。本程序退出时会自动结束穿透进程。"
+                Severity="Informational" />
+            <ui:InfoBar
+                Title="安全提醒"
+                Margin="0,0,0,4"
+                IsClosable="True"
+                IsOpen="True"
+                Message="穿透会把远程桌面 / SSH 暴露到公网，请确保 Windows 账户设置了强密码，并保持 NLA 开启；用完立即停止。"
+                Severity="Warning" />
+
+            <TextBlock Style="{StaticResource SectionHeader}" Text="选择服务商" />
+            <StackPanel x:Name="CardsPanel" />
+
+            <TextBlock Style="{StaticResource SectionHeader}" Text="连接别人的电脑（Cloudflare）" />
+            <ui:CardControl Icon="{ui:SymbolIcon PlugConnected24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="通过 Cloudflare 隧道远程别人" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="对方用 Cloudflare 开了穿透并把 xxx.trycloudflare.com 发给你：粘贴到这里，点连接，会自动做本地转发并打开远程桌面。" />
+                        <WrapPanel Margin="0,8,0,0">
+                            <ui:TextBox
+                                x:Name="VisitHostBox"
+                                Width="340"
+                                Margin="0,0,8,0"
+                                PlaceholderText="xxxx.trycloudflare.com" />
+                            <ui:Button
+                                x:Name="VisitButton"
+                                Margin="0,0,8,0"
+                                Appearance="Primary"
+                                Click="Visit_Click"
+                                Content="连接"
+                                Icon="{ui:SymbolIcon Desktop24}" />
+                            <ui:Button
+                                Click="VisitStop_Click"
+                                Content="断开转发"
+                                Icon="{ui:SymbolIcon Stop24}" />
+                            <TextBlock
+                                x:Name="VisitState"
+                                Margin="12,0,0,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CardDesc}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ui:CardControl.Header>
+            </ui:CardControl>
+
+            <WrapPanel Margin="0,16,0,0">
+                <ui:Button
+                    Click="OpenTools_Click"
+                    Content="打开组件目录"
+                    Icon="{ui:SymbolIcon FolderOpen24}" />
+            </WrapPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
