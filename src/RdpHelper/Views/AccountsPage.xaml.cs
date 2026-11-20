@@ -195,6 +195,66 @@ public partial class AccountsPage : Page
         if (RemoteInfo.CopyToClipboard("ssh-keygen -t ed25519")) Notify.Success(L.T("已复制"), "ssh-keygen -t ed25519");
     }
 
+    /// <summary>读取 .pub 文件内容回填到输入框（追加，可一次选多个）。公钥文件很小，超过 64 KB 的视为选错了文件。</summary>
+    private void FillFromFiles(IEnumerable<string> files)
+    {
+        var added = new List<string>();
+        foreach (var f in files)
+        {
+            try
+            {
+                if (new FileInfo(f).Length > 64 * 1024) { Notify.Warn(L.T("文件太大，不像公钥"), Path.GetFileName(f)); continue; }
+                var text = File.ReadAllText(f).Trim();
+                var lines = text.Replace("\r", "").Split('\n').Where(l => l.Trim().Length > 0 && !l.TrimStart().StartsWith('#')).ToList();
+                if (lines.Count == 0 || lines.Any(l => SshKeyService.Parse(l) == null))
+                {
+                    Notify.Warn(L.T("不是有效的 SSH 公钥文件"),
+                        text.Contains("PRIVATE KEY") ? L.T("这是私钥！请选择 .pub 结尾的公钥文件，私钥千万不要发给别人。") : Path.GetFileName(f));
+                    continue;
+                }
+                added.AddRange(lines);
+            }
+            catch (Exception ex) { Notify.Error(L.T("读取文件失败"), ex.Message); }
+        }
+        if (added.Count == 0) return;
+        var current = KeyInputBox.Text.TrimEnd();
+        KeyInputBox.Text = (current.Length > 0 ? current + Environment.NewLine : "") + string.Join(Environment.NewLine, added);
+        KeyInputBox.CaretIndex = KeyInputBox.Text.Length;
+        Notify.Info(L.F("已读取 {0} 把公钥", added.Count), L.T("确认无误后点「添加公钥」"));
+    }
+
+    private void PickKeyFile_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = L.T("选择 SSH 公钥文件"),
+            Filter = L.T("SSH 公钥") + " (*.pub)|*.pub|" + L.T("所有文件") + " (*.*)|*.*",
+            Multiselect = true,
+            InitialDirectory = Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ssh"))
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ssh")
+                : Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+        };
+        if (dlg.ShowDialog() == true) FillFromFiles(dlg.FileNames);
+    }
+
+    private void KeyInput_PreviewDragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+    }
+
+    private void KeyInput_PreviewDrop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetData(DataFormats.FileDrop) is string[] files)
+        {
+            e.Handled = true;
+            FillFromFiles(files);
+        }
+    }
+
     private async void AddKey_Click(object sender, RoutedEventArgs e)
     {
         var text = KeyInputBox.Text;

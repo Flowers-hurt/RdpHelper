@@ -71,6 +71,17 @@ public static class GuiSelfTest
                     Render(window, file, theme == ApplicationTheme.Dark);
                     var leftovers = L.IsEnglish ? ChineseTexts(window) : new List<string>();
                     bool ok = leftovers.Count == 0;
+                    if (name == "tunnel" && Find<TunnelPage>(window) is { } tp)
+                    {
+                        // 默认只展示 bore（带「推荐」），Cloudflare / ngrok 在「更多服务商」里
+                        var main = (System.Windows.Controls.Panel)tp.FindName("CardsPanel");
+                        var more = (System.Windows.Controls.Panel)tp.FindName("MoreCardsPanel");
+                        bool layout = main.Children.Count == 1 && main.Children[0] is TunnelCard c
+                                      && ((FrameworkElement)c.FindName("RecommendBadge")).Visibility == Visibility.Visible
+                                      && ((System.Windows.Controls.TextBlock)c.FindName("NameText")).Text == "bore"
+                                      && more.Children.Count == 2;
+                        if (!layout) { ok = false; log.AppendLine("     穿透页布局不对：默认应只显示带推荐标识的 bore，更多服务商里 2 个"); }
+                    }
                     log.AppendLine($"{(ok ? "OK  " : "FAIL")} {L.Lang} {theme} {name} -> {file}");
                     foreach (var t in leftovers) log.AppendLine("     未翻译：" + t);
                     if (!ok) failed++;

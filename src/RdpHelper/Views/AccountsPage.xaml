@@ -266,7 +266,7 @@
                     </StackPanel>
                 </ui:CardExpander.Header>
                 <StackPanel Margin="40,4,0,4">
-                    <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '对方在自己电脑上运行下面的命令生成密钥（一路回车即可），再把 id_ed25519.pub 文件的内容发给你，粘贴到这里：'}" />
+                    <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '对方在自己电脑上运行下面的命令生成密钥（一路回车即可），再把 id_ed25519.pub 文件或它的内容发给你，粘贴或选择文件即可：'}" />
                     <Grid Margin="0,6,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -292,16 +292,29 @@
                         x:Name="KeyInputBox"
                         MinHeight="72"
                         AcceptsReturn="True"
+                        AllowDrop="True"
+                        PreviewDragOver="KeyInput_PreviewDragOver"
+                        PreviewDrop="KeyInput_PreviewDrop"
                         FontFamily="Consolas, Cascadia Mono"
                         FontSize="12"
                         PlaceholderText="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA… user@laptop"
                         TextWrapping="Wrap" />
                     <WrapPanel Margin="0,8,0,8">
                         <ui:Button
+                            Margin="0,0,8,0"
+                            Click="PickKeyFile_Click"
+                            Content="{l:T '选择 .pub 文件'}"
+                            Icon="{ui:SymbolIcon FolderOpen24}" />
+                        <ui:Button
                             Appearance="Primary"
                             Click="AddKey_Click"
                             Content="{l:T '添加公钥'}"
                             Icon="{ui:SymbolIcon Add24}" />
+                        <TextBlock
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CardDesc}"
+                            Text="{l:T '也可以把 .pub 文件直接拖到上面的输入框'}" />
                     </WrapPanel>
                     <ItemsControl x:Name="KeyList">
                         <ItemsControl.ItemTemplate>

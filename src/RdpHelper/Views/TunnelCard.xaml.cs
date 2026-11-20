@@ -14,10 +14,12 @@ public partial class TunnelCard : UserControl
     private readonly Action<string> _onLog;
     private readonly Action _onState;
 
-    public TunnelCard(TunnelProvider provider, SymbolRegular icon)
+    public TunnelCard(TunnelProvider provider, SymbolRegular icon, bool recommended = false)
     {
         InitializeComponent();
         _p = provider;
+        RecommendBadge.Visibility = recommended ? Visibility.Visible : Visibility.Collapsed;
+        Expander.IsExpanded = recommended; // 推荐项默认展开，第一次就能看到「下载组件」
         HeaderIcon.Symbol = icon;
         NameText.Text = provider.Name;
         SummaryText.Text = provider.Summary;

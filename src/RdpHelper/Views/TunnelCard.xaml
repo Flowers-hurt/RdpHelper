@@ -15,7 +15,23 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock x:Name="NameText" Style="{StaticResource CardTitle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="NameText" Style="{StaticResource CardTitle}" />
+                        <Border
+                            x:Name="RecommendBadge"
+                            Margin="8,0,0,0"
+                            Padding="7,1"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource AccentFillColorDefaultBrush}"
+                            CornerRadius="4"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                Text="{l:T '推荐'}" />
+                        </Border>
+                    </StackPanel>
                     <TextBlock x:Name="SummaryText" Style="{StaticResource CardDesc}" />
                 </StackPanel>
                 <Border

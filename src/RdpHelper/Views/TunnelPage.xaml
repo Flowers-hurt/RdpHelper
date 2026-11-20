@@ -27,38 +27,50 @@
             <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '选择服务商'}" />
             <StackPanel x:Name="CardsPanel" />
 
-            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '连接别人的电脑（Cloudflare）'}" />
-            <ui:CardControl Icon="{ui:SymbolIcon PlugConnected24}">
-                <ui:CardControl.Header>
+            <!--  进阶：Cloudflare / ngrok 默认收起  -->
+            <Expander x:Name="MoreExpander" Margin="0,12,0,0">
+                <Expander.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '通过 Cloudflare 隧道远程别人'}" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '对方用 Cloudflare 开了穿透并把 xxx.trycloudflare.com 发给你：粘贴到这里，点连接，会自动做本地转发并打开远程桌面。'}" />
-                        <WrapPanel Margin="0,8,0,0">
-                            <ui:TextBox
-                                x:Name="VisitHostBox"
-                                Width="340"
-                                Margin="0,0,8,0"
-                                PlaceholderText="xxxx.trycloudflare.com" />
-                            <ui:Button
-                                x:Name="VisitButton"
-                                Margin="0,0,8,0"
-                                Appearance="Primary"
-                                Click="Visit_Click"
-                                Content="{l:T '连接'}"
-                                Icon="{ui:SymbolIcon Desktop24}" />
-                            <ui:Button
-                                Click="VisitStop_Click"
-                                Content="{l:T '断开转发'}"
-                                Icon="{ui:SymbolIcon Stop24}" />
-                            <TextBlock
-                                x:Name="VisitState"
-                                Margin="12,0,0,0"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource CardDesc}" />
-                        </WrapPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '更多服务商（Cloudflare、ngrok）'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '适合进阶用户：Cloudflare 访问方也要运行客户端，ngrok 需要注册账号；国内网络下载这两个组件可能较慢。'}" />
                     </StackPanel>
-                </ui:CardControl.Header>
-            </ui:CardControl>
+                </Expander.Header>
+                <StackPanel Margin="0,8,0,0">
+                    <StackPanel x:Name="MoreCardsPanel" />
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '连接别人的电脑（Cloudflare）'}" />
+                    <ui:CardControl Icon="{ui:SymbolIcon PlugConnected24}">
+                        <ui:CardControl.Header>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '通过 Cloudflare 隧道远程别人'}" />
+                                <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '对方用 Cloudflare 开了穿透并把 xxx.trycloudflare.com 发给你：粘贴到这里，点连接，会自动做本地转发并打开远程桌面。'}" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <ui:TextBox
+                                        x:Name="VisitHostBox"
+                                        Width="340"
+                                        Margin="0,0,8,0"
+                                        PlaceholderText="xxxx.trycloudflare.com" />
+                                    <ui:Button
+                                        x:Name="VisitButton"
+                                        Margin="0,0,8,0"
+                                        Appearance="Primary"
+                                        Click="Visit_Click"
+                                        Content="{l:T '连接'}"
+                                        Icon="{ui:SymbolIcon Desktop24}" />
+                                    <ui:Button
+                                        Click="VisitStop_Click"
+                                        Content="{l:T '断开转发'}"
+                                        Icon="{ui:SymbolIcon Stop24}" />
+                                    <TextBlock
+                                        x:Name="VisitState"
+                                        Margin="12,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource CardDesc}" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </ui:CardControl.Header>
+                    </ui:CardControl>
+                </StackPanel>
+            </Expander>
 
             <WrapPanel Margin="0,16,0,0">
                 <ui:Button

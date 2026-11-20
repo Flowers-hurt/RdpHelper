@@ -29,7 +29,7 @@ Windows 11 Settings look · Acrylic glass · Single self-contained exe
 
 Letting someone remote into a Windows PC usually means digging through Settings, fiddling with the firewall, editing the registry to change the port, looking up the IP — and finding a tunneling tool when you're not on the same network.
 
-**RdpHelper** wraps all of that into a small tool styled like Windows 11 Settings: **one toggle to enable Remote Desktop or SSH, one button to change / restore the port, one button to copy connection info for the other person**. When you need internet access, pick Cloudflare, ngrok or bore — the app downloads it on demand and reports the public address.
+**RdpHelper** wraps all of that into a small tool styled like Windows 11 Settings: **one toggle to enable Remote Desktop or SSH, one button to change / restore the port, one button to copy connection info for the other person**. When you need internet access, the default is **bore** (no account, ~1 MB client); advanced users can pick Cloudflare or ngrok under *More providers*. Clients are downloaded on demand and the public address is reported automatically.
 
 The installer ships **no tunneling binaries**; they are fetched from their official sources only when you click *Download*.
 
@@ -48,14 +48,14 @@ The installer ships **no tunneling binaries**; they are fetched from their offic
 | 🛡️ **Access control** | IP allow list | Empty = allow all; otherwise only listed sources |
 | | IP deny list | Always wins (firewall Block beats Allow) |
 | | Formats | IPv4 / IPv6, CIDR, ranges `a-b`, `LocalSubnet` |
-| 🌐 **Tunneling** | Cloudflare Tunnel | No account, free; built-in visitor side |
-| | ngrok | Authtoken setup, `tcp://x.tcp.ngrok.io:port` |
-| | bore | Open source, public `bore.pub` relay, no account |
+| 🌐 **Tunneling** | bore ⭐ recommended | Shown by default: open source, ~1 MB, no account; visitors use plain mstsc with `bore.pub:port` |
+| | Cloudflare Tunnel (more providers) | No account, free; built-in visitor side |
+| | ngrok (more providers) | Authtoken setup, `tcp://x.tcp.ngrok.io:port` |
 | | RDP or SSH | Child processes live in a Job Object and die with the app |
 | 👤 **Accounts** | Blank password / Microsoft account detection | Windows refuses remote sign-in without a password; the RDP and SSH pages warn you |
 | | Set the account password | One click for local accounts; Microsoft accounts link to the website |
 | | Dedicated remote account | Your own user name and password, added to Remote Desktop Users; disable / reset / delete |
-| | SSH public keys | Paste their key for password-less SSH; optionally disable SSH password auth |
+| | SSH public keys | Paste a key or choose / drop a `.pub` file; warns if you pick a private key; optionally disable SSH password auth |
 | 🎨 **UI** | Fluent design | NavigationView + cards like Windows Settings |
 | | Glass | Acrylic / Mica / Mica Alt; light / dark / system |
 | | 🌐 Bilingual | English / 简体中文 / follow system, switches instantly; shared connection info follows the language |
@@ -153,6 +153,7 @@ flowchart TD
 
 | | Cloudflare Tunnel | ngrok | bore |
 | :-- | :-: | :-: | :-: |
+| Where in the app | More providers | More providers | **Default · recommended** |
 | Account | ❌ | ✅ Authtoken | ❌ |
 | Cost | Free | Free tier (TCP needs card verification) | Free |
 | Address | `xxx.trycloudflare.com` | `x.tcp.ngrok.io:port` | `bore.pub:port` |

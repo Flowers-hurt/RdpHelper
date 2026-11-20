@@ -12,9 +12,14 @@ public partial class TunnelPage : Page
     public TunnelPage()
     {
         InitializeComponent();
-        CardsPanel.Children.Add(new TunnelCard(TunnelManager.Cloudflare, SymbolRegular.Cloud24));
-        CardsPanel.Children.Add(new TunnelCard(TunnelManager.Ngrok, SymbolRegular.Globe24));
-        CardsPanel.Children.Add(new TunnelCard(TunnelManager.Bore, SymbolRegular.PlugConnected24));
+        // 默认只展示 bore（免注册、组件仅约 1 MB、对方直接用 mstsc），Cloudflare / ngrok 收在「更多服务商」里
+        CardsPanel.Children.Add(new TunnelCard(TunnelManager.Bore, SymbolRegular.PlugConnected24, recommended: true));
+        MoreCardsPanel.Children.Add(new TunnelCard(TunnelManager.Cloudflare, SymbolRegular.Cloud24));
+        MoreCardsPanel.Children.Add(new TunnelCard(TunnelManager.Ngrok, SymbolRegular.Globe24));
+        // 用过（已下载 / 正在运行）进阶服务商时自动展开，免得找不到
+        MoreExpander.IsExpanded = TunnelManager.Cloudflare.IsInstalled || TunnelManager.Ngrok.IsInstalled
+                                  || TunnelManager.Cloudflare.IsRunning || TunnelManager.Ngrok.IsRunning
+                                  || TunnelManager.Cloudflare.IsAccessRunning;
         Loaded += (_, _) => VisitState.Text = TunnelManager.Cloudflare.IsAccessRunning ? L.T("转发运行中") : "";
     }
 
