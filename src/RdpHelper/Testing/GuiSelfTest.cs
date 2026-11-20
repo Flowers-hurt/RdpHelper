@@ -27,6 +27,7 @@ public static class GuiSelfTest
         (typeof(AccessPage), "access"),
         (typeof(TunnelPage), "tunnel"),
         (typeof(SettingsPage), "settings"),
+        (typeof(AboutPage), "about"),
     };
 
     public static async Task<int> RunAsync(MainWindow window, string outDir)
@@ -57,7 +58,7 @@ public static class GuiSelfTest
                 try
                 {
                     window.NavigateTo(page); // 已在该页时返回 false，不算失败
-                    await Settle(name is "remote" or "ssh" ? 6000 : 2500);
+                    await Settle(name is "remote" or "ssh" or "about" ? 6000 : 2500);
                     var file = Path.Combine(outDir, $"{name}-{theme.ToString().ToLowerInvariant()}.png");
                     Render(window, file, theme == ApplicationTheme.Dark);
                     var leftovers = L.IsEnglish ? ChineseTexts(window) : new List<string>();

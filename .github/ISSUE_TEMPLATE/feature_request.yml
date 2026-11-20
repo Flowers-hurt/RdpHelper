@@ -1,0 +1,29 @@
+name: 💡 功能建议 / Feature request
+description: 新功能、新穿透服务商或界面改进 / New features, tunnel providers or UI improvements
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 使用场景 / Use case
+      description: 你想解决什么问题？/ What problem are you trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的方案 / Proposed solution
+      description: 希望 RdpHelper 怎么做？/ How should RdpHelper handle it?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 其它方案 / Alternatives considered
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: 参与 / Contribution
+      options:
+        - label: 我愿意提交 Pull Request 实现它 / I'd like to open a PR for this

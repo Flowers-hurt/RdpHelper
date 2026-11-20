@@ -414,7 +414,34 @@ Windows 家庭版没有远程桌面 **服务端**（只能去连别人，不能�
 
 ## 🤝 参与贡献
 
-欢迎 Issue 和 PR！提交前请确保 CI 自检通过。
+欢迎任何形式的贡献！详见 [贡献指南](CONTRIBUTING.md)。
+
+| 我想… | 入口 |
+| :-- | :-- |
+| 🐞 报告 Bug | [Bug 报告](https://github.com/Flowers-hurt/RdpHelper/issues/new?template=bug_report.yml)（程序内「关于 → 复制诊断信息」可一键带上环境信息） |
+| 💡 提建议 | [功能建议](https://github.com/Flowers-hurt/RdpHelper/issues/new?template=feature_request.yml) |
+| 🛠️ 写代码 | Fork → 分支 → Pull Request，CI 自动在真实 Windows 上跑完整自检 |
+| 🌐 翻译 | 改进 [`Localization/en.json`](src/RdpHelper/Localization/en.json) 或增加新语言 |
+| 🔒 安全问题 | [私下报告](SECURITY.md) |
+
+程序内也有完整的「关于」页：版本与检查更新、作者、贡献者头像墙、贡献入口和第三方开源许可。
+
+<img src="docs/screenshots/about-light.png" alt="关于页" width="720" />
+
+### ✨ 贡献者
+
+<a href="https://github.com/Flowers-hurt/RdpHelper/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Flowers-hurt/RdpHelper" alt="Contributors" />
+</a>
+
+### ⭐ Star 趋势
+
+<a href="https://star-history.com/#Flowers-hurt/RdpHelper&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Flowers-hurt/RdpHelper&type=Date&theme=dark" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Flowers-hurt/RdpHelper&type=Date" width="600" />
+  </picture>
+</a>
 
 ## ⚠️ 免责声明
 

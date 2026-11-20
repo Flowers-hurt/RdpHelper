@@ -3,7 +3,7 @@
 ; 不包含任何内网穿透组件（cloudflared / ngrok / bore 在程序内按需下载）。
 
 #ifndef AppVersion
-  #define AppVersion "1.1.0"
+  #define AppVersion "1.2.0"
 #endif
 #define AppName "RdpHelper"
 #define AppDisplayName "RdpHelper 远程桌面助手"

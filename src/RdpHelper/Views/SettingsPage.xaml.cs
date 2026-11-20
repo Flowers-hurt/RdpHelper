@@ -7,7 +7,7 @@ namespace RdpHelper.Views;
 
 public partial class SettingsPage : Page
 {
-    public const string RepoUrl = "https://github.com/Flowers-hurt/RdpHelper";
+    public const string RepoUrl = GitHubInfo.RepoUrl;
     private bool _loading = true;
 
     public SettingsPage()
@@ -57,6 +57,11 @@ public partial class SettingsPage : Page
     {
         Directory.CreateDirectory(AppPaths.Tools);
         Process.Start(new ProcessStartInfo("explorer.exe", $"\"{AppPaths.Tools}\"") { UseShellExecute = true });
+    }
+
+    private void About_Click(object sender, RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is MainWindow w) w.NavigateTo(typeof(AboutPage));
     }
 
     private void Github_Click(object sender, RoutedEventArgs e) =>

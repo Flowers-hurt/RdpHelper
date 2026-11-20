@@ -1,0 +1,54 @@
+name: 🐞 Bug 报告 / Bug report
+description: 程序出错、功能不符合预期 / Something isn't working
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！提交前请先搜索是否已有相同 Issue。
+        Thanks for the report! Please search existing issues first.
+        > 💡 在 RdpHelper「关于 → 复制诊断信息」可一键复制环境信息（不含用户名和 IP）。
+        > In RdpHelper, *About → Copy diagnostics* copies the environment info (no user name or IP).
+  - type: textarea
+    id: what
+    attributes:
+      label: 问题描述 / What happened
+      description: 发生了什么？你期望的结果是什么？/ What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1. 打开「远程桌面」页 / Open the Remote Desktop page
+        2. 把端口改成 13389 / Change the port to 13389
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: 环境信息 / Environment
+      description: 粘贴「复制诊断信息」的内容 / Paste the output of "Copy diagnostics"
+      render: markdown
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 涉及功能 / Area
+      multiple: true
+      options:
+        - 远程桌面 / Remote Desktop
+        - SSH
+        - 访问控制 / Access control
+        - 内网穿透 / Tunneling
+        - 界面 / UI
+        - 安装包 / Installer
+  - type: textarea
+    id: logs
+    attributes:
+      label: 截图或日志 / Screenshots or logs
+      description: 穿透问题请附上卡片里的「运行日志」；SSH 安装问题请附上「安装日志」/ Attach the tunnel log or the SSH install log if relevant

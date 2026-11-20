@@ -57,6 +57,10 @@
                     Content="{l:T '设置'}"
                     Icon="{ui:SymbolIcon Settings24}"
                     TargetPageType="{x:Type views:SettingsPage}" />
+                <ui:NavigationViewItem
+                    Content="{l:T '关于'}"
+                    Icon="{ui:SymbolIcon Info24}"
+                    TargetPageType="{x:Type views:AboutPage}" />
             </ui:NavigationView.FooterMenuItems>
             <ui:NavigationView.ContentOverlay>
                 <Grid>

@@ -96,10 +96,17 @@
                         <TextBlock x:Name="VersionText" Style="{StaticResource CardDesc}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:Button
-                    Click="Github_Click"
-                    Content="GitHub"
-                    Icon="{ui:SymbolIcon Open24}" />
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button
+                        Margin="0,0,8,0"
+                        Click="Github_Click"
+                        Content="GitHub"
+                        Icon="{ui:SymbolIcon Open24}" />
+                    <ui:Button
+                        Click="About_Click"
+                        Content="{l:T '关于与贡献'}"
+                        Icon="{ui:SymbolIcon Info24}" />
+                </StackPanel>
             </ui:CardControl>
         </StackPanel>
     </ScrollViewer>

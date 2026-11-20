@@ -169,6 +169,37 @@ dotnet publish src/RdpHelper/RdpHelper.csproj -c Release -r win-x64 --self-conta
 
 Installer: [Inno Setup 6](https://jrsoftware.org/isinfo.php) — `ISCC installer\RdpHelper.iss`.
 
+## 🤝 Contributing
+
+Contributions of every kind are welcome. See the [contributing guide](CONTRIBUTING.md).
+
+| I want to… | Go to |
+| :-- | :-- |
+| 🐞 Report a bug | [Bug report](https://github.com/Flowers-hurt/RdpHelper/issues/new?template=bug_report.yml) (*About → Copy diagnostics* in the app grabs your environment) |
+| 💡 Suggest a feature | [Feature request](https://github.com/Flowers-hurt/RdpHelper/issues/new?template=feature_request.yml) |
+| 🛠️ Write code | Fork → branch → pull request; CI runs the full self-test on real Windows |
+| 🌐 Translate | Improve [`Localization/en.json`](src/RdpHelper/Localization/en.json) or add a language |
+| 🔒 Report a vulnerability | [Privately](SECURITY.md) |
+
+The app has a full **About** page too: version & update check, author, contributor wall, ways to contribute and third-party licenses.
+
+<img src="docs/screenshots/en/about-light.png" alt="About page" width="720" />
+
+### ✨ Contributors
+
+<a href="https://github.com/Flowers-hurt/RdpHelper/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Flowers-hurt/RdpHelper" alt="Contributors" />
+</a>
+
+### ⭐ Star history
+
+<a href="https://star-history.com/#Flowers-hurt/RdpHelper&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Flowers-hurt/RdpHelper&type=Date&theme=dark" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Flowers-hurt/RdpHelper&type=Date" width="600" />
+  </picture>
+</a>
+
 ## ⚠️ Disclaimer
 
 This tool changes remote-access settings and may expose services to the internet. Use it only on machines you are authorized to manage. Tunnels are provided by third parties under their own terms.
