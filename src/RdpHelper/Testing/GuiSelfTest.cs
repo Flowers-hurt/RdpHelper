@@ -67,6 +67,12 @@ public static class GuiSelfTest
                 {
                     window.NavigateTo(page); // 已在该页时返回 false，不算失败
                     await Settle(name is "remote" or "ssh" or "about" or "accounts" ? 6000 : 2500);
+                    // CI 的引擎自检下载过 Cloudflare / ngrok，「更多服务商」会自动展开；截图展示新用户看到的默认收起状态
+                    if (name == "tunnel" && Find<TunnelPage>(window)?.FindName("MoreExpander") is System.Windows.Controls.Expander ex)
+                    {
+                        ex.IsExpanded = false;
+                        await Settle(800);
+                    }
                     var file = Path.Combine(outDir, $"{name}-{theme.ToString().ToLowerInvariant()}.png");
                     Render(window, file, theme == ApplicationTheme.Dark);
                     var leftovers = L.IsEnglish ? ChineseTexts(window) : new List<string>();
