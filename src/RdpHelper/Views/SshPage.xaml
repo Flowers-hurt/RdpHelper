@@ -8,6 +8,20 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40,4,40,40" MaxWidth="1000">
             <TextBlock Style="{StaticResource PageTitle}" Text="SSH" />
+            <ui:InfoBar
+                x:Name="PasswordBar"
+                Margin="0,0,0,4"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Warning" />
+            <ui:Button
+                x:Name="PasswordFixButton"
+                Margin="0,0,0,12"
+                Appearance="Primary"
+                Click="GoAccounts_Click"
+                Content="{l:T '去「账户与密码」处理'}"
+                Icon="{ui:SymbolIcon Person24}"
+                Visibility="Collapsed" />
 
             <Border
                 Padding="20"

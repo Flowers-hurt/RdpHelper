@@ -103,6 +103,7 @@ public partial class SshPage : Page
                 L.F("SSH 已停止 · 启动类型 {0}", startType));
         }
 
+        await RemotePage.ShowPasswordWarningAsync(PasswordBar, PasswordFixButton);
         var lan = NetworkService.Primary(await Task.Run(NetworkService.GetLanAddresses));
         CommandText.Text = SshService.ConnectCommand(lan?.Ip ?? L.T("本机IP"), port);
     }
@@ -116,6 +117,8 @@ public partial class SshPage : Page
         }
         ShowInstallState();
     }
+
+    private void GoAccounts_Click(object sender, RoutedEventArgs e) => RemotePage.GoAccounts();
 
     private async void SshToggle_Click(object sender, RoutedEventArgs e)
     {

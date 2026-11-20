@@ -165,7 +165,98 @@ public static class SelfTest
                 Assert(await RdpService.WaitListeningAsync(22, true, 20_000), "22 未监听");
                 return "OK";
             });
+
+            await Run("sshd_config 密码登录开关改写（纯函数）", async () =>
+            {
+                await Task.CompletedTask;
+                var cfg = "Port 22\r\n#PasswordAuthentication yes\r\nPasswordAuthentication yes\r\n\r\nMatch Group administrators\r\n       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys\r\n       PasswordAuthentication yes\r\n";
+                var off = SshKeyService.RewritePasswordAuth(cfg, false);
+                Assert(off.Contains("#PasswordAuthentication yes\r\nPasswordAuthentication no\r\n"), "全局段没有写入 no：" + off);
+                Assert(off.Contains("Match Group administrators\r\n       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys\r\n       PasswordAuthentication yes"), "Match 段被改动了：" + off);
+                Assert(off.Split("PasswordAuthentication no").Length == 2, "出现了多行设置");
+                Assert(SshKeyService.RewritePasswordAuth(off, true).Contains("\r\nPasswordAuthentication yes\r\n\r\nMatch"), "改回 yes 失败");
+                Assert(SshKeyService.Parse("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK0wmN/Cr3JXqmLW7u+g9pTh+wyqDHpSQEIQczXkVx9q a@b") != null, "合法公钥被判为无效");
+                Assert(SshKeyService.Parse("ssh-rsa AAAAC3NzaC1lZDI1NTE5AAAAIK0wmN/Cr3JXqmLW7u+g9pTh+wyqDHpSQEIQczXkVx9q") == null, "类型与内容不符的公钥应判为无效");
+                return "OK";
+            });
+
+            await Run("SSH 公钥免密码登录 + 禁止密码登录（真实 ssh 连接）", async () =>
+            {
+                var me = await AccountService.GetCurrentAsync();
+                var dir = Path.Combine(Path.GetTempPath(), "rdph-key-" + Guid.NewGuid().ToString("N")[..8]);
+                Directory.CreateDirectory(dir);
+                var key = Path.Combine(dir, "id_ed25519");
+                var g = await Shell.RunAsync("ssh-keygen.exe", $"-t ed25519 -N \"\" -C rdphelper-selftest -q -f \"{key}\"", 30_000);
+                Assert(File.Exists(key + ".pub"), "ssh-keygen 失败：" + g.Output);
+                var pub = File.ReadAllText(key + ".pub").Trim();
+                Assert(await SshKeyService.AddAsync(me.IsAdmin, pub) == 1, "添加公钥失败");
+                Assert(await SshKeyService.AddAsync(me.IsAdmin, pub) == 0, "重复公钥没有被跳过");
+                var fp = SshKeyService.Parse(pub)!.Fingerprint;
+                var common = "-o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ConnectTimeout=15";
+                string target = $"{me.User}@127.0.0.1";
+                async Task<Shell.Result> Ssh(string extra) => await Shell.RunAsync("ssh.exe", $"{common} {extra} {target} echo RDPH_OK", 60_000);
+
+                var withKey = await Ssh($"-i \"{key}\"");
+                Assert(withKey.Output.Contains("RDPH_OK"), $"公钥登录失败（{SshKeyService.KeysFile(me.IsAdmin)}）：" + withKey.Output);
+                var noKeyBefore = await Ssh("-o PubkeyAuthentication=no");
+                Assert(noKeyBefore.Output.Contains("password", StringComparison.OrdinalIgnoreCase), "默认应允许密码登录：" + noKeyBefore.Output);
+
+                var w = await SshKeyService.SetPasswordAuthAsync(false, me.IsAdmin);
+                Assert(!SshKeyService.PasswordAuthEnabled(), "配置文件未写入");
+                await RdpService.WaitListeningAsync(22, true, 20_000);
+                var noKeyAfter = await Ssh("-o PubkeyAuthentication=no");
+                var denied = noKeyAfter.Output.Split('\n').FirstOrDefault(l => l.Contains("Permission denied")) ?? noKeyAfter.Output;
+                Assert(!denied.Contains("password"), "关闭后服务器仍提供密码登录：" + denied);
+                var withKeyAfter = await Ssh($"-i \"{key}\"");
+                Assert(withKeyAfter.Output.Contains("RDPH_OK"), "关闭密码登录后公钥登录失败：" + withKeyAfter.Output);
+
+                await SshKeyService.SetPasswordAuthAsync(true, me.IsAdmin);
+                await SshKeyService.RemoveAsync(me.IsAdmin, fp);
+                Assert(SshKeyService.List(me.IsAdmin).All(k => k.Fingerprint != fp), "公钥未删除");
+                await RdpService.WaitListeningAsync(22, true, 20_000);
+                var afterRemove = await Ssh($"-i \"{key}\"");
+                Assert(!afterRemove.Output.Contains("RDPH_OK"), "删除公钥后仍能登录");
+                try { Directory.Delete(dir, true); } catch { /* ignore */ }
+                return $"账户 {me.User} admin={me.IsAdmin} · {fp}\n关闭前：{noKeyBefore.Output.Trim()}\n关闭后：{denied.Trim()} {w}";
+            });
         }
+
+        // ---------------- 账户 ----------------
+        await Run("当前账户检测", async () =>
+        {
+            var me = await AccountService.GetCurrentAsync();
+            return $"{me.User} kind={me.Kind} hasPassword={me.HasPassword} admin={me.IsAdmin} passwordlessOnly={me.PasswordlessOnly} RDP 组={AccountService.RdpUsersGroup}";
+        });
+
+        await Run("远程专用账户：创建 / 登录 / 改密码 / 禁用 / 删除", async () =>
+        {
+            const string name = "rdph_selftest";
+            if (AccountService.ListRemoteAccounts().Any(a => a.Name == name)) await AccountService.DeleteRemoteAccountAsync(name);
+            string p1 = "Rh!" + Guid.NewGuid().ToString("N")[..12] + "a9", p2 = "Rh#" + Guid.NewGuid().ToString("N")[..12] + "b8";
+            Assert(AccountService.ValidateUserName("bad/name") != null && AccountService.ValidateUserName(name) == null, "用户名校验不对");
+            AccountService.CreateRemoteAccount(name, p1, admin: false);
+            try
+            {
+                var acc = AccountService.ListRemoteAccounts().FirstOrDefault(a => a.Name == name);
+                Assert(acc is { Enabled: true, InRdpGroup: true, IsAdmin: false }, "账户状态不对：" + acc);
+                Assert(AccountService.TestNetworkLogon(name, p1), "新账户无法用密码网络登录");
+                Assert(AccountService.HasPassword(name) == true, "空密码检测误判");
+                AccountService.SetPassword(name, p2);
+                Assert(AccountService.TestNetworkLogon(name, p2) && !AccountService.TestNetworkLogon(name, p1), "改密码后新旧密码校验不对");
+                AccountService.SetEnabled(name, false);
+                Assert(!AccountService.TestNetworkLogon(name, p2) && AccountService.ListRemoteAccounts().First(a => a.Name == name).Enabled == false, "禁用无效");
+                AccountService.SetEnabled(name, true);
+                Assert(AccountService.TestNetworkLogon(name, p2), "重新启用无效");
+                try { AccountService.CreateRemoteAccount(name, p1, false); Assert(false, "重复创建应失败"); }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("已经存在")) { }
+            }
+            finally
+            {
+                await AccountService.DeleteRemoteAccountAsync(name);
+            }
+            Assert(AccountService.ListRemoteAccounts().All(a => a.Name != name), "删除失败");
+            return $"OK · 组 {AccountService.RdpUsersGroup}";
+        });
 
         // ---------------- 内网穿透 ----------------
         if (!skip.Contains("tunnel"))

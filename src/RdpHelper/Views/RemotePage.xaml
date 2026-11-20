@@ -91,6 +91,20 @@
                 Message="{l:T '修改端口或关闭远程桌面会立即断开当前连接，请确认能用新端口重新连回来。'}"
                 Severity="Informational" />
 
+            <ui:InfoBar
+                x:Name="PasswordBar"
+                Margin="0,0,0,4"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Warning" />
+            <ui:Button
+                x:Name="PasswordFixButton"
+                Margin="0,0,0,12"
+                Appearance="Primary"
+                Click="GoAccounts_Click"
+                Content="{l:T '去「账户与密码」处理'}"
+                Icon="{ui:SymbolIcon Person24}"
+                Visibility="Collapsed" />
             <!--  顶部：电脑卡片（仿 Win11 设置）  -->
             <Border
                 Padding="20"

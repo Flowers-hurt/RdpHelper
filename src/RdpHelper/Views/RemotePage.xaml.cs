@@ -27,6 +27,7 @@ public partial class RemotePage : Page
             UpgradeCard.Visibility = Visibility.Visible;
         }
         RemoteSessionBar.IsOpen = RdpService.IsInRemoteSession;
+        await ShowPasswordWarningAsync(PasswordBar, PasswordFixButton);
 
         bool on = RdpService.IsEnabled();
         int port = RdpService.GetPort();
@@ -128,6 +129,32 @@ public partial class RemotePage : Page
             if (RemoteInfo.CopyToClipboard(text)) Notify.Success(L.T("已复制"), text);
         }
     }
+
+    /// <summary>当前账户没有密码 / 只允许 Windows Hello 时，远程桌面和 SSH 都登不进来，在页面顶部提示。</summary>
+    internal static async Task ShowPasswordWarningAsync(Wpf.Ui.Controls.InfoBar bar, FrameworkElement button)
+    {
+        var me = await AccountService.GetCurrentAsync();
+        if (me.BlankPasswordProblem)
+        {
+            bar.Title = L.T("当前账户没有设置密码，别人无法远程登录");
+            bar.Message = L.T("Windows 不允许空密码的账户通过远程桌面或 SSH 登录，对方会一直提示密码错误。请给账户设置密码，或创建一个远程专用账户。");
+        }
+        else if (me.PasswordlessOnly)
+        {
+            bar.Title = L.T("已开启「仅允许 Windows Hello 登录」");
+            bar.Message = L.T("远程登录需要输入账户密码，PIN 码和指纹无效。请在登录选项里关闭该设置，或创建一个远程专用账户。");
+        }
+        bool show = me.BlankPasswordProblem || me.PasswordlessOnly;
+        bar.IsOpen = show;
+        button.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    internal static void GoAccounts()
+    {
+        if (Application.Current.MainWindow is MainWindow w) w.NavigateTo(typeof(AccountsPage));
+    }
+
+    private void GoAccounts_Click(object sender, RoutedEventArgs e) => GoAccounts();
 
     // ---------- 家庭版升级 ----------
 

@@ -48,6 +48,10 @@
                     Icon="{ui:SymbolIcon ShieldKeyhole24}"
                     TargetPageType="{x:Type views:AccessPage}" />
                 <ui:NavigationViewItem
+                    Content="{l:T '账户与密码'}"
+                    Icon="{ui:SymbolIcon Person24}"
+                    TargetPageType="{x:Type views:AccountsPage}" />
+                <ui:NavigationViewItem
                     Content="{l:T '内网穿透'}"
                     Icon="{ui:SymbolIcon Globe24}"
                     TargetPageType="{x:Type views:TunnelPage}" />
