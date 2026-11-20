@@ -16,7 +16,7 @@ Windows 11 Settings look · Acrylic glass · Single self-contained exe
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20%7C%20Server-0078D6?style=flat-square&logo=windows&logoColor=white)](#-requirements)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF-UI](https://img.shields.io/badge/UI-WPF--UI%20Fluent-5C2D91?style=flat-square)](https://github.com/lepoco/wpfui)
-[![Self-test](https://img.shields.io/badge/self--test-28%20passed-brightgreen?style=flat-square)](#-automated-testing)
+[![Self-test](https://img.shields.io/badge/self--test-33%20passed-brightgreen?style=flat-square)](#-automated-testing)
 
 [简体中文](README.md) | **English**
 
@@ -52,6 +52,10 @@ The installer ships **no tunneling binaries**; they are fetched from their offic
 | | ngrok | Authtoken setup, `tcp://x.tcp.ngrok.io:port` |
 | | bore | Open source, public `bore.pub` relay, no account |
 | | RDP or SSH | Child processes live in a Job Object and die with the app |
+| 👤 **Accounts** | Blank password / Microsoft account detection | Windows refuses remote sign-in without a password; the RDP and SSH pages warn you |
+| | Set the account password | One click for local accounts; Microsoft accounts link to the website |
+| | Dedicated remote account | Your own user name and password, added to Remote Desktop Users; disable / reset / delete |
+| | SSH public keys | Paste their key for password-less SSH; optionally disable SSH password auth |
 | 🎨 **UI** | Fluent design | NavigationView + cards like Windows Settings |
 | | Glass | Acrylic / Mica / Mica Alt; light / dark / system |
 | | 🌐 Bilingual | English / 简体中文 / follow system, switches instantly; shared connection info follows the language |
@@ -69,6 +73,8 @@ The installer ships **no tunneling binaries**; they are fetched from their offic
 | <img src="docs/screenshots/en/settings-dark.png" /> | <img src="docs/screenshots/en/remote-light.png" /> |
 | **Installing OpenSSH (progress kept across pages)** | **Home edition: upgrade to Pro (simulated on CI)** |
 | <img src="docs/screenshots/ssh-installing.png" /> | <img src="docs/screenshots/en/home-remote-dark.png" /> |
+| **Accounts & passwords** | **About** |
+| <img src="docs/screenshots/en/accounts-light.png" /> | <img src="docs/screenshots/en/about-dark.png" /> |
 
 ## 📦 Download
 

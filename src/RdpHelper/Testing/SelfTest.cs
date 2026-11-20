@@ -225,6 +225,7 @@ public static class SelfTest
         await Run("当前账户检测", async () =>
         {
             var me = await AccountService.GetCurrentAsync();
+            Assert(!(me.Kind == AccountKind.Local && me.PasswordlessOnly), "本地账户不应提示「仅允许 Windows Hello」");
             return $"{me.User} kind={me.Kind} hasPassword={me.HasPassword} admin={me.IsAdmin} passwordlessOnly={me.PasswordlessOnly} RDP 组={AccountService.RdpUsersGroup}";
         });
 

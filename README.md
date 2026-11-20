@@ -16,7 +16,7 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20%7C%20Server-0078D6?style=flat-square&logo=windows&logoColor=white)](#-系统要求)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF-UI](https://img.shields.io/badge/UI-WPF--UI%20Fluent-5C2D91?style=flat-square)](https://github.com/lepoco/wpfui)
-[![Self-test](https://img.shields.io/badge/self--test-28%20passed-brightgreen?style=flat-square)](#-自动化测试)
+[![Self-test](https://img.shields.io/badge/self--test-33%20passed-brightgreen?style=flat-square)](#-自动化测试)
 [![Stars](https://img.shields.io/github/stars/Flowers-hurt/RdpHelper?style=flat-square&logo=github)](https://github.com/Flowers-hurt/RdpHelper/stargazers)
 
 **简体中文** | [English](README.en.md)
@@ -55,6 +55,10 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 | | ngrok | Authtoken 一键写入，得到 `tcp://x.tcp.ngrok.io:端口` |
 | | bore | 开源极简，公共服务器 `bore.pub`，免注册 |
 | | 远程桌面 / SSH 均可穿透 | 子进程挂在 Job Object 上，程序退出必定一起结束 |
+| 👤 **账户与密码** | 空密码 / 微软账户检测 | 没设密码时 Windows 拒绝远程登录，远程桌面页和 SSH 页会直接提示 |
+| | 给当前账户设置密码 | 本地账户一键设置；微软账户跳转官网修改 |
+| | 远程专用账户 | 自定义用户名和密码，自动加入远程桌面用户组，可禁用 / 重置密码 / 删除 |
+| | SSH 公钥免密码登录 | 粘贴对方公钥即可；可关闭 SSH 密码登录，防暴力破解 |
 | 🎨 **界面** | Win11 Fluent 设计 | 仿系统「设置」，导航 + 卡片 + 开关 |
 | | 毛玻璃 | 亚克力 / 云母 / 云母 Alt 可切换；浅色 / 深色 / 跟随系统 |
 | | 🌐 中英双语 | 设置里切换「跟随系统 / 简体中文 / English」，立即生效；复制给别人的连接信息也随语言输出 |
@@ -97,6 +101,15 @@ Win11 设置风格 · 亚克力毛玻璃 · 单文件免依赖
 | :-: | :-: |
 | <img src="docs/screenshots/ssh-light.png" /> | <img src="docs/screenshots/access-dark.png" /> |
 | <img src="docs/screenshots/tunnel-dark.png" /> | <img src="docs/screenshots/settings-light.png" /> |
+
+</details>
+
+<details>
+<summary>账户与密码 / 关于页</summary>
+
+| 账户与密码 | 关于（作者、贡献者、检查更新、开源许可） |
+| :-: | :-: |
+| <img src="docs/screenshots/accounts-light.png" /> | <img src="docs/screenshots/about-dark.png" /> |
 
 </details>
 
@@ -359,6 +372,24 @@ RdpHelper/
 </details>
 
 ## ❓ 常见问题
+
+<details>
+<summary><b>远程密码能不能自定义？电脑没密码为什么连不上？</b></summary>
+
+远程桌面和 SSH 都用 **Windows 账户** 登录，这是系统机制，没有单独的「远程密码」。Windows 也 **不允许空密码账户远程登录**（对方会一直提示密码错误）。在「账户与密码」页可以：
+
+- 给当前本地账户设置密码（微软账户请用邮箱 + 微软账户密码，PIN 码不能用于远程）；
+- 创建 **远程专用账户**，用户名和密码自己定，不影响你的账户，用完禁用或删除；
+- 让 SSH 使用 **公钥免密码登录**，并可关闭 SSH 密码登录。
+
+</details>
+
+<details>
+<summary><b>软件需要一直开着吗？</b></summary>
+
+不需要。远程桌面 / SSH 的开关、端口和 IP 名单都写在系统里（注册表、系统服务、防火墙），退出软件、重启电脑都有效。只有 **内网穿透** 需要软件保持运行。卸载软件时会自动恢复普通的防火墙放行规则，已开启的远程桌面 / SSH 卸载后照样能连。
+
+</details>
 
 <details>
 <summary><b>家庭版能用吗？</b></summary>

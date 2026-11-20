@@ -62,7 +62,8 @@ public static class AccountService
         }
 
         bool admin = kind != AccountKind.Domain ? IsLocalAdmin(user) : new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
-        _cached = new CurrentAccount(user, kind, hasPassword, admin, IsPasswordlessOnly());
+        // 「仅允许 Windows Hello」只作用于微软账户，新装系统默认就是开着的；本地账户不受影响，不提示
+        _cached = new CurrentAccount(user, kind, hasPassword, admin, kind == AccountKind.Microsoft && IsPasswordlessOnly());
         return _cached;
     }
 
