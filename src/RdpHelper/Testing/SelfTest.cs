@@ -250,6 +250,24 @@ public static class SelfTest
             return $"OK · changepk.exe 存在={hasChangepk}（不在 CI 上真正执行升级：会改系统版本并重启）";
         });
 
+        await Run("卸载恢复防火墙：自定义端口仍可连接", async () =>
+        {
+            var script = Path.Combine(AppContext.BaseDirectory, "restore-firewall.ps1");
+            Assert(File.Exists(script), "exe 旁边没有 restore-firewall.ps1");
+            await RdpService.SetPortAsync(13390);
+            Assert(await FirewallService.RuleCountAsync(RemoteKind.Rdp) == 2, "改端口后本程序规则不是 2 条");
+            var r = await Shell.RunAsync("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\"", 120_000);
+            Assert(await FirewallService.RuleCountAsync(RemoteKind.Rdp) == 0, "卸载脚本没有删除本程序规则");
+            var allow = await Shell.PowerShellAsync("@(Get-NetFirewallRule -Name 'RdpHelper-Restored-RDP-*' | Where-Object { $_.Enabled -eq 'True' -and $_.Action -eq 'Allow' } | Get-NetFirewallPortFilter | Where-Object LocalPort -eq '13390').Count");
+            Assert(allow.Output.Trim().EndsWith("2"), "卸载后没有为 13390 恢复 TCP+UDP 放行规则：" + allow.Output);
+            await RdpHandshakeAsync("127.0.0.1", 13390);
+            // 重新接管：恢复的普通规则必须被删掉，否则会绕过白名单
+            await RdpService.SetPortAsync(RdpService.DefaultPort);
+            var left = await Shell.PowerShellAsync("@(Get-NetFirewallRule -Name 'RdpHelper-Restored-*').Count");
+            Assert(left.Output.Trim().EndsWith("0"), "重新接管后残留恢复规则：" + left.Output);
+            return r.Output.Trim();
+        });
+
         await Run("关闭远程桌面", async () =>
         {
             await RdpService.EnableAsync(false);

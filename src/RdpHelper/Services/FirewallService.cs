@@ -54,6 +54,8 @@ public static class FirewallService
         string label = k == RemoteKind.Rdp ? "Remote Desktop" : "OpenSSH";
         var sb = new StringBuilder();
         sb.AppendLine($"Get-NetFirewallRule -Name '{prefix}*' -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue");
+        // 以前卸载时留下的普通放行规则（restore-firewall.ps1）会绕过黑白名单，重新接管时一并删除
+        sb.AppendLine($"Get-NetFirewallRule -Name 'RdpHelper-Restored-{(k == RemoteKind.Rdp ? "RDP" : "SSH")}-*' -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue");
         sb.AppendLine(BuiltinDisableScript(k));
         if (!enabled) return sb.ToString();
 

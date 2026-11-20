@@ -46,6 +46,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "..\publish\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\publish\redist\*"; DestDir: "{app}\redist"; Flags: ignoreversion
+Source: "restore-firewall.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppDisplayName}"; Filename: "{app}\{#AppExe}"
@@ -56,8 +57,8 @@ Name: "{autodesktop}\{#AppDisplayName}"; Filename: "{app}\{#AppExe}"; Tasks: des
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppDisplayName}}"; Flags: nowait postinstall skipifsilent shellexec
 
 [UninstallRun]
-; 卸载时删除本程序创建的防火墙规则（不改动远程桌面 / SSH 的开关状态）
-Filename: "powershell.exe"; Parameters: "-NoProfile -Command ""Get-NetFirewallRule -Name 'RdpHelper-*' -ErrorAction SilentlyContinue | Remove-NetFirewallRule"""; Flags: runhidden; RunOnceId: "RemoveFwRules"
+; 卸载时删除本程序的防火墙规则，并按当前端口恢复普通放行规则（不改动远程桌面 / SSH 的开关状态，卸载后照样能连）
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\restore-firewall.ps1"""; Flags: runhidden; RunOnceId: "RestoreFwRules"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\RdpHelper\tools"

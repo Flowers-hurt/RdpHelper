@@ -123,22 +123,25 @@
             <!--  作者  -->
             <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '作者'}" />
             <ui:CardControl Margin="0,0,0,4">
-                <ui:CardControl.Icon>
-                    <Grid Width="40" Height="40">
-                        <Ellipse Fill="{DynamicResource SubtleFillColorSecondaryBrush}" />
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontWeight="SemiBold"
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                            Text="F" />
-                        <Ellipse x:Name="AuthorAvatar" />
-                    </Grid>
-                </ui:CardControl.Icon>
                 <ui:CardControl.Header>
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="Flowers-hurt" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '作者 · 维护者'}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Grid
+                            Width="44"
+                            Height="44"
+                            Margin="0,0,14,0">
+                            <Ellipse Fill="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                Text="F" />
+                            <Ellipse x:Name="AuthorAvatar" />
+                        </Grid>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource CardTitle}" Text="Flowers-hurt" />
+                            <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '作者 · 维护者'}" />
+                        </StackPanel>
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:Button

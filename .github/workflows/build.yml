@@ -52,6 +52,7 @@ jobs:
           if ($lic) { Copy-Item $lic.FullName publish\redist\OpenSSH-LICENSE.txt }
           else { Invoke-WebRequest https://raw.githubusercontent.com/PowerShell/openssh-portable/latestw_all/LICENCE -OutFile publish\redist\OpenSSH-LICENSE.txt }
           "Win32-OpenSSH $($r.tag_name)" | Set-Content publish\redist\OpenSSH-VERSION.txt
+          Copy-Item installer\restore-firewall.ps1 publish\
           Get-ChildItem publish\redist | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
 
       - name: Engine self-test (real RDP / SSH / firewall / tunnels)
@@ -95,7 +96,7 @@ jobs:
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
           & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer\RdpHelper.iss
           if ($LASTEXITCODE -ne 0) { exit 1 }
-          Compress-Archive -Path publish\RdpHelper.exe, publish\redist, LICENSE -DestinationPath "dist\RdpHelper-${{ steps.ver.outputs.version }}-portable-x64.zip"
+          Compress-Archive -Path publish\RdpHelper.exe, publish\redist, publish\restore-firewall.ps1, LICENSE -DestinationPath "dist\RdpHelper-${{ steps.ver.outputs.version }}-portable-x64.zip"
           Get-ChildItem dist
 
       - uses: actions/upload-artifact@v4
