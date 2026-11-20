@@ -452,7 +452,20 @@
   "默认 3389；改成不常见的端口可减少公网扫描和暴力破解": "Default 3389. An uncommon port reduces internet scanning and brute-force attempts",
   "（远程桌面和 SSH 目前都未开启）": "(Neither Remote Desktop nor SSH is currently enabled)",
   "，新版本发布于 {0:yyyy-MM-dd}": "; the new version was released on {0:yyyy-MM-dd}",
-  "打开 RdpHelper": "Open RdpHelper",
   "退出 RdpHelper": "Exit RdpHelper",
-  "内网穿透仍在运行，RdpHelper 已收进托盘。单击托盘图标可重新打开，右键可退出。": "A tunnel is still running, so RdpHelper moved to the system tray. Click the tray icon to reopen it, or right-click to exit."
+  "打开主界面": "Open main window",
+  "复制远程连接信息": "Copy connection info",
+  "RdpHelper 已收进托盘，远程桌面、SSH 和内网穿透照常工作。单击托盘图标可重新打开，右键可退出；在设置里可改为关闭即退出。": "RdpHelper is still running in the system tray; Remote Desktop, SSH and tunnels keep working. Click the tray icon to reopen it or right-click to exit. You can make the close button exit instead in Settings.",
+  "版本 {0}": "Version {0}",
+  "已开启 · 端口 {0}": "On · port {0}",
+  "未开启": "Off",
+  "未运行": "Not running",
+  "运行中 · 端口 {0}": "Running · port {0}",
+  "未安装": "Not installed",
+  "已复制到剪贴板": "Copied to clipboard",
+  "运行": "Behavior",
+  "关闭主窗口时": "When closing the main window",
+  "收进托盘后程序在后台继续运行，内网穿透不会断，单击托盘图标可重新打开。远程桌面和 SSH 是系统服务，退出程序也照常可用": "Minimize to tray keeps RdpHelper running in the background so tunnels stay up; click the tray icon to reopen it. Remote Desktop and SSH are system services and keep working even after you exit",
+  "收进托盘": "Minimize to tray",
+  "退出程序": "Exit the app"
 }

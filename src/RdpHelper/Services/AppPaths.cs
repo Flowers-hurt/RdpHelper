@@ -29,6 +29,9 @@ public sealed class AppSettings
     /// <summary>acrylic / mica / tabbed / none</summary>
     public string Backdrop { get; set; } = "acrylic";
 
+    /// <summary>关闭主窗口时：tray（收进托盘，后台继续运行）/ exit（退出程序）</summary>
+    public string CloseAction { get; set; } = "tray";
+
     public List<string> RdpAllow { get; set; } = new();
     public List<string> RdpDeny { get; set; } = new();
     public List<string> SshAllow { get; set; } = new();

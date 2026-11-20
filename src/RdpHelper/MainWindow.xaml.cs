@@ -26,15 +26,12 @@ public partial class MainWindow : FluentWindow
     /// <summary>为 true 时直接关闭（切换语言替换窗口时用），不收进托盘。</summary>
     public bool AllowClose { get; set; }
 
-    /// <summary>有内网穿透 / 访问通道在运行：关掉程序它们就断了，所以关闭窗口时收进托盘。</summary>
-    public static bool TunnelsActive =>
-        Environment.GetEnvironmentVariable("RDPHELPER_TEST_FAKE_TUNNEL") == "1"
-        || Services.Tunnels.TunnelManager.All.Any(p => p.IsRunning)
-        || Services.Tunnels.TunnelManager.Cloudflare.IsAccessRunning;
+    /// <summary>设置「关闭窗口时」：tray = 收进托盘继续后台运行（默认），exit = 退出程序。</summary>
+    public static bool CloseToTray => AppSettings.Current.CloseAction != "exit";
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        if (!AllowClose && !App.IsExiting && TunnelsActive && App.HideToTray(this))
+        if (!AllowClose && !App.IsExiting && CloseToTray && App.HideToTray(this))
         {
             e.Cancel = true;
             return;

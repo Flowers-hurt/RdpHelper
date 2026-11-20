@@ -60,6 +60,23 @@
                 </ComboBox>
             </ui:CardControl>
 
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '运行'}" />
+            <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Dismiss24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '关闭主窗口时'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '收进托盘后程序在后台继续运行，内网穿透不会断，单击托盘图标可重新打开。远程桌面和 SSH 是系统服务，退出程序也照常可用'}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ComboBox
+                    x:Name="CloseBox"
+                    Width="180"
+                    SelectionChanged="Close_Changed">
+                    <ComboBoxItem Content="{l:T '收进托盘'}" Tag="tray" />
+                    <ComboBoxItem Content="{l:T '退出程序'}" Tag="exit" />
+                </ComboBox>
+            </ui:CardControl>
+
             <TextBlock Style="{StaticResource SectionHeader}" Text="{l:T '数据'}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Folder24}">
                 <ui:CardControl.Header>

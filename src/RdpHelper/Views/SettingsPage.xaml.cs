@@ -17,6 +17,7 @@ public partial class SettingsPage : Page
         Select(ThemeBox, s.Theme);
         Select(BackdropBox, s.Backdrop);
         Select(LanguageBox, s.Language);
+        Select(CloseBox, s.CloseAction);
         ToolsPathText.Text = AppPaths.Tools;
         SettingsPathText.Text = AppPaths.SettingsFile;
         VersionText.Text = L.F("版本 {0} · MIT 开源 · 基于 .NET 8 + WPF-UI", AppPaths.Version);
@@ -38,6 +39,14 @@ public partial class SettingsPage : Page
         s.Backdrop = (string)((ComboBoxItem)BackdropBox.SelectedItem).Tag;
         s.Save();
         if (Application.Current.MainWindow is MainWindow w) App.ApplyAppearance(w);
+    }
+
+    private void Close_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        var s = AppSettings.Current;
+        s.CloseAction = (string)((ComboBoxItem)CloseBox.SelectedItem).Tag;
+        s.Save();
     }
 
     private void Language_Changed(object sender, SelectionChangedEventArgs e)

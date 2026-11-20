@@ -59,8 +59,16 @@ public partial class App : Application
         ShowMain(window);
         if (!guiTest)
         {
-            try { _tray = new TrayIcon(ShowFromTray, RequestExit); }
+            try { _tray = new TrayIcon(ShowFromTray); }
             catch (Exception ex) { StartupLog("tray icon failed: " + ex.Message); }
+        }
+
+        // CI 截图用：启动后直接在屏幕右下角（托盘位置）弹出托盘菜单
+        if (Environment.GetEnvironmentVariable("RDPHELPER_TEST_TRAYMENU") == "1")
+        {
+            await Task.Delay(2500);
+            var wa = System.Windows.Forms.Screen.PrimaryScreen!.WorkingArea;
+            Views.TrayMenu.Toggle(new System.Drawing.Point(wa.Right - 60, wa.Bottom));
         }
 
         if (guiTest)
@@ -87,7 +95,7 @@ public partial class App : Application
         window.Show();
     }
 
-    /// <summary>收进托盘（有穿透在运行时关闭窗口走这里，关掉程序穿透会断）。</summary>
+    /// <summary>收进托盘（设置里「关闭窗口时」为最小化到托盘时走这里）。</summary>
     public static bool HideToTray(MainWindow window)
     {
         var app = (App)Current;

@@ -100,6 +100,14 @@ jobs:
           function WaitFor([scriptblock]$cond, [int]$sec) { $t = [DateTime]::Now.AddSeconds($sec); while ([DateTime]::Now -lt $t) { if (& $cond) { return $true }; Start-Sleep -Milliseconds 300 }; return [bool](& $cond) }
           function Launch() { Start-Process -FilePath $exe -PassThru }
           function Cleanup() { Get-Process RdpHelper -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 1 }
+          $cfg = "$env:ProgramData\RdpHelper\settings.json"
+          function SetCfg($name, $value) {
+            $j = if (Test-Path $cfg) { Get-Content $cfg -Raw | ConvertFrom-Json } else { [pscustomobject]@{} }
+            $j | Add-Member -NotePropertyName $name -NotePropertyValue $value -Force
+            New-Item -ItemType Directory -Force (Split-Path $cfg) | Out-Null
+            $j | ConvertTo-Json -Depth 5 | Set-Content $cfg -Encoding UTF8
+          }
+          SetCfg CloseAction 'tray'
 
           "== A: second launch brings the running window back instead of an error =="
           $a = Launch
@@ -108,27 +116,30 @@ jobs:
           Check (WaitFor { $b.HasExited } 20) "second instance exits by itself (exit $($b.ExitCode))"
           Check (Visible $a) "first instance still running with a visible window"
 
-          "== B: closing the window really ends the process =="
+          Cleanup
+
+          "== C: default setting: close hides to tray, launching again restores it =="
+          $d = Launch
+          Check (WaitFor { Visible $d } 40) "window shown"
+          [void]$d.CloseMainWindow()
+          Check (WaitFor { -not (Visible $d) } 10) "window hidden after close"
+          Start-Sleep 2
+          Check (-not $d.HasExited) "process kept running in tray"
+          $e = Launch
+          Check (WaitFor { $e.HasExited } 20) "second launch exits"
+          Check (WaitFor { Visible $d } 10) "hidden window is shown again"
+          Cleanup
+
+          "== B: setting = exit: closing the window really ends the process =="
+          SetCfg CloseAction 'exit'
+          $a = Launch
+          Check (WaitFor { Visible $a } 40) "window shown"
           [void]$a.CloseMainWindow()
           Check (WaitFor { $a.HasExited } 15) "process exits after window close"
           $c = Launch
           Check (WaitFor { Visible $c } 40) "app opens again after being closed"
           [void]$c.CloseMainWindow()
           Check (WaitFor { $c.HasExited } 15) "and closes again"
-          Cleanup
-
-          "== C: with a tunnel running, close hides to tray; launching again restores it =="
-          $env:RDPHELPER_TEST_FAKE_TUNNEL = '1'
-          $d = Launch
-          Remove-Item env:RDPHELPER_TEST_FAKE_TUNNEL
-          Check (WaitFor { Visible $d } 40) "window shown"
-          [void]$d.CloseMainWindow()
-          Check (WaitFor { -not (Visible $d) } 10) "window hidden after close"
-          Start-Sleep 2
-          Check (-not $d.HasExited) "process kept running in tray (tunnel not killed)"
-          $e = Launch
-          Check (WaitFor { $e.HasExited } 20) "second launch exits"
-          Check (WaitFor { Visible $d } 10) "hidden window is shown again"
           Cleanup
 
           "== D: leftover process without a window (old bug) is recovered on next launch =="
@@ -143,6 +154,27 @@ jobs:
           [void]$f.CloseMainWindow()
           Check (WaitFor { $f.HasExited } 15) "closes cleanly"
           Cleanup
+
+          "== tray menu screenshots (real screen capture, shows DWM acrylic) =="
+          Add-Type -AssemblyName System.Drawing, System.Windows.Forms
+          New-Item -ItemType Directory -Force screenshots\tray | Out-Null
+          foreach ($theme in 'light', 'dark') {
+            SetCfg Theme $theme
+            $env:RDPHELPER_TEST_TRAYMENU = '1'
+            $t = Launch
+            Remove-Item env:RDPHELPER_TEST_TRAYMENU
+            Start-Sleep 9
+            $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+            $bmp.Save("$PWD\screenshots\tray\screen-$theme.png")
+            $g.Dispose(); $bmp.Dispose()
+            Check (-not $t.HasExited) "tray menu run ($theme) still alive"
+            Cleanup
+          }
+          SetCfg Theme 'system'
+          SetCfg CloseAction 'tray'
 
           "== startup.log =="
           Get-Content "$env:LOCALAPPDATA\RdpHelper\startup.log" -ErrorAction SilentlyContinue
