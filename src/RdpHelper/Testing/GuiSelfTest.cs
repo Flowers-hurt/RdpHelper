@@ -35,6 +35,13 @@ public static class GuiSelfTest
         Directory.CreateDirectory(outDir);
         var log = new StringBuilder();
         int failed = 0;
+
+        // 默认打开位置：必须完整在屏幕工作区内且居中（CI 虚拟机屏幕较小，正好覆盖「标题栏超出屏幕」的问题）
+        await Settle(2000);
+        var (inside, detail) = WindowFit.Check(window);
+        log.AppendLine($"{(inside ? "OK  " : "FAIL")} 默认窗口在屏幕内并居中：{detail} 尺寸 {window.ActualWidth:0}x{window.ActualHeight:0} DIP");
+        if (!inside) failed++;
+
         window.Width = 1180;
         window.Height = 820;
         window.WindowStartupLocation = WindowStartupLocation.Manual;

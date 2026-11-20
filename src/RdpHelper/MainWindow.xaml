@@ -13,7 +13,7 @@
     ExtendsContentIntoTitleBar="True"
     WindowBackdropType="Acrylic"
     WindowCornerPreference="Round"
-    WindowStartupLocation="CenterScreen"
+    WindowStartupLocation="Manual"
     Icon="pack://application:,,,/Assets/app.png">
     <Grid>
         <Grid.RowDefinitions>

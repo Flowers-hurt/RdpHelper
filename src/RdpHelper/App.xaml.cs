@@ -77,6 +77,7 @@ public partial class App : Application
         if (app.MainWindow is not MainWindow old) return;
         var w = new MainWindow(typeof(Views.SettingsPage))
         {
+            AutoPlace = false,
             WindowStartupLocation = WindowStartupLocation.Manual,
             Left = old.Left,
             Top = old.Top,
