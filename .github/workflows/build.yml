@@ -89,6 +89,65 @@ jobs:
           Get-ChildItem screenshots -Recurse -Filter *.png | ForEach-Object { $_.FullName }
           exit $fail
 
+      - name: Lifecycle self-test (close / reopen / tray / leftover process)
+        if: always()
+        shell: pwsh
+        run: |
+          $exe = "$PWD\publish\RdpHelper.exe"
+          $script:fail = 0
+          function Check($ok, $msg) { if ($ok) { "OK    $msg" } else { "FAIL  $msg"; $script:fail = 1 } }
+          function Visible($p) { $p.Refresh(); -not $p.HasExited -and $p.MainWindowHandle -ne 0 }
+          function WaitFor([scriptblock]$cond, [int]$sec) { $t = [DateTime]::Now.AddSeconds($sec); while ([DateTime]::Now -lt $t) { if (& $cond) { return $true }; Start-Sleep -Milliseconds 300 }; return [bool](& $cond) }
+          function Launch() { Start-Process -FilePath $exe -PassThru }
+          function Cleanup() { Get-Process RdpHelper -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 1 }
+
+          "== A: second launch brings the running window back instead of an error =="
+          $a = Launch
+          Check (WaitFor { Visible $a } 40) "first instance shows its window"
+          $b = Launch
+          Check (WaitFor { $b.HasExited } 20) "second instance exits by itself (exit $($b.ExitCode))"
+          Check (Visible $a) "first instance still running with a visible window"
+
+          "== B: closing the window really ends the process =="
+          [void]$a.CloseMainWindow()
+          Check (WaitFor { $a.HasExited } 15) "process exits after window close"
+          $c = Launch
+          Check (WaitFor { Visible $c } 40) "app opens again after being closed"
+          [void]$c.CloseMainWindow()
+          Check (WaitFor { $c.HasExited } 15) "and closes again"
+          Cleanup
+
+          "== C: with a tunnel running, close hides to tray; launching again restores it =="
+          $env:RDPHELPER_TEST_FAKE_TUNNEL = '1'
+          $d = Launch
+          Remove-Item env:RDPHELPER_TEST_FAKE_TUNNEL
+          Check (WaitFor { Visible $d } 40) "window shown"
+          [void]$d.CloseMainWindow()
+          Check (WaitFor { -not (Visible $d) } 10) "window hidden after close"
+          Start-Sleep 2
+          Check (-not $d.HasExited) "process kept running in tray (tunnel not killed)"
+          $e = Launch
+          Check (WaitFor { $e.HasExited } 20) "second launch exits"
+          Check (WaitFor { Visible $d } 10) "hidden window is shown again"
+          Cleanup
+
+          "== D: leftover process without a window (old bug) is recovered on next launch =="
+          $env:RDPHELPER_TEST_ZOMBIE = '1'
+          $z = Launch
+          Remove-Item env:RDPHELPER_TEST_ZOMBIE
+          Start-Sleep 6
+          Check (-not $z.HasExited -and -not (Visible $z)) "leftover process holds the lock with no window"
+          $f = Launch
+          Check (WaitFor { Visible $f } 45) "next launch opens a window anyway"
+          Check (WaitFor { $z.HasExited } 10) "leftover process was ended"
+          [void]$f.CloseMainWindow()
+          Check (WaitFor { $f.HasExited } 15) "closes cleanly"
+          Cleanup
+
+          "== startup.log =="
+          Get-Content "$env:LOCALAPPDATA\RdpHelper\startup.log" -ErrorAction SilentlyContinue
+          exit $script:fail
+
       - name: Build installer (Inno Setup)
         shell: pwsh
         run: |

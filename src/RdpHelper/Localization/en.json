@@ -17,7 +17,6 @@
   "PIN 码和指纹不能用于远程登录。微软账户密码只能在微软网站修改；不想用它，可以在下面创建远程专用账户。": "PIN and fingerprint cannot be used remotely. The Microsoft account password can only be changed on Microsoft's website; if you would rather not share it, create a dedicated remote account below.",
   "PowerShell 返回错误：{0}": "PowerShell returned an error: {0}",
   "RDP 是 TCP 协议，访问方不能直接用 mstsc 连这个域名，需要先在自己电脑上运行 cloudflared 做本地转发——": "RDP is TCP, so the visitor cannot point mstsc at this hostname directly; they first run cloudflared locally as a forwarder. ",
-  "RdpHelper 已经在运行了。": "RdpHelper is already running.",
   "RdpHelper 是完全开源的项目，欢迎任何形式的贡献：报告问题、提出建议、改进代码或翻译。": "RdpHelper is fully open source. Contributions of every kind are welcome: bug reports, ideas, code and translations.",
   "RdpHelper 远程桌面助手": "RdpHelper",
   "RdpHelper 采用 MIT 许可证": "RdpHelper is licensed under MIT",
@@ -452,5 +451,8 @@
   "默认 22；修改 sshd_config 的 Port 并重启 sshd": "Default 22. Updates Port in sshd_config and restarts sshd",
   "默认 3389；改成不常见的端口可减少公网扫描和暴力破解": "Default 3389. An uncommon port reduces internet scanning and brute-force attempts",
   "（远程桌面和 SSH 目前都未开启）": "(Neither Remote Desktop nor SSH is currently enabled)",
-  "，新版本发布于 {0:yyyy-MM-dd}": "; the new version was released on {0:yyyy-MM-dd}"
+  "，新版本发布于 {0:yyyy-MM-dd}": "; the new version was released on {0:yyyy-MM-dd}",
+  "打开 RdpHelper": "Open RdpHelper",
+  "退出 RdpHelper": "Exit RdpHelper",
+  "内网穿透仍在运行，RdpHelper 已收进托盘。单击托盘图标可重新打开，右键可退出。": "A tunnel is still running, so RdpHelper moved to the system tray. Click the tray icon to reopen it, or right-click to exit."
 }
