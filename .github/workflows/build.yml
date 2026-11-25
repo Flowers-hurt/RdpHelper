@@ -158,19 +158,20 @@ jobs:
           "== tray menu screenshots (real screen capture, shows DWM acrylic) =="
           Add-Type -AssemblyName System.Drawing, System.Windows.Forms
           New-Item -ItemType Directory -Force screenshots\tray | Out-Null
-          foreach ($theme in 'light', 'dark') {
+          foreach ($run in @('zh,light', 'zh,dark', 'en,light', 'en,dark')) {
+            $lang, $theme = $run -split ','
             SetCfg Theme $theme
             $env:RDPHELPER_TEST_TRAYMENU = '1'
-            $t = Launch
+            $t = Start-Process -FilePath $exe -ArgumentList '--lang', $lang -PassThru
             Remove-Item env:RDPHELPER_TEST_TRAYMENU
             Start-Sleep 9
             $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
             $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
             $g = [System.Drawing.Graphics]::FromImage($bmp)
             $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
-            $bmp.Save("$PWD\screenshots\tray\screen-$theme.png")
+            $bmp.Save("$PWD\screenshots\tray\screen-$lang-$theme.png")
             $g.Dispose(); $bmp.Dispose()
-            Check (-not $t.HasExited) "tray menu run ($theme) still alive"
+            Check (-not $t.HasExited) "tray menu run ($lang $theme) still alive"
             Cleanup
           }
           SetCfg Theme 'system'

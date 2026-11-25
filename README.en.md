@@ -20,6 +20,8 @@ Windows 11 Settings look · Acrylic glass · Single self-contained exe
 
 [简体中文](README.md) | **English**
 
+[🌐 Website](https://flowers-hurt.github.io/RdpHelper/)
+
 </div>
 
 > [!NOTE]

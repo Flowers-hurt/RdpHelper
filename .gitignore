@@ -8,3 +8,4 @@ selftest.json
 .vs/
 .idea/
 .DS_Store
+/_site/

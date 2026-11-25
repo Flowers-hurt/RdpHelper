@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="auto">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RdpHelper 远程桌面助手</title>
+<meta name="description" content="一键开启 Windows 远程桌面与 OpenSSH，自定义端口、IP 黑白名单、按需内网穿透。Win11 设置风格，开源免费。" />
+<meta property="og:title" content="RdpHelper 远程桌面助手" />
+<meta property="og:description" content="一键开启 Windows 远程桌面 / OpenSSH · 自定义端口 · IP 黑白名单 · 按需内网穿透" />
+<meta property="og:image" content="https://flowers-hurt.github.io/RdpHelper/shots/zh/remote-dark.jpg" />
+<meta name="theme-color" content="#0067c0" />
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+:root {
+  --bg: #f3f3f3;
+  --bg-2: #ebebeb;
+  --card: rgba(255, 255, 255, .72);
+  --card-solid: #fbfbfb;
+  --card-hover: rgba(255, 255, 255, .92);
+  --stroke: rgba(0, 0, 0, .07);
+  --stroke-2: rgba(0, 0, 0, .12);
+  --text: #1a1a1a;
+  --text-2: #5d5d5d;
+  --text-3: #8a8a8a;
+  --accent: #0067c0;
+  --accent-2: #005fb8;
+  --accent-text: #ffffff;
+  --accent-soft: rgba(0, 103, 192, .09);
+  --ok: #0f7b0f;
+  --shadow: 0 2px 4px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.08);
+  --shadow-lg: 0 8px 16px rgba(0,0,0,.08), 0 32px 80px rgba(0,0,0,.16);
+  --bloom-1: #7cc4ff;
+  --bloom-2: #b9a6ff;
+  --bloom-3: #8fe3d6;
+  --code: rgba(0,0,0,.05);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1c1c; --bg-2: #202020; --card: rgba(43, 43, 43, .68); --card-solid: #2b2b2b; --card-hover: rgba(50, 50, 50, .9);
+    --stroke: rgba(255,255,255,.07); --stroke-2: rgba(255,255,255,.12);
+    --text: #ffffff; --text-2: #c5c5c5; --text-3: #9a9a9a;
+    --accent: #4cc2ff; --accent-2: #47b1e8; --accent-text: #000000; --accent-soft: rgba(76,194,255,.12); --ok: #6ccb5f;
+    --shadow: 0 2px 4px rgba(0,0,0,.2), 0 12px 32px rgba(0,0,0,.3); --shadow-lg: 0 8px 16px rgba(0,0,0,.3), 0 32px 80px rgba(0,0,0,.5);
+    --bloom-1: #0a4b8c; --bloom-2: #3c2a7a; --bloom-3: #0b5a52; --code: rgba(255,255,255,.07);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1c1c; --bg-2: #202020; --card: rgba(43, 43, 43, .68); --card-solid: #2b2b2b; --card-hover: rgba(50, 50, 50, .9);
+  --stroke: rgba(255,255,255,.07); --stroke-2: rgba(255,255,255,.12);
+  --text: #ffffff; --text-2: #c5c5c5; --text-3: #9a9a9a;
+  --accent: #4cc2ff; --accent-2: #47b1e8; --accent-text: #000000; --accent-soft: rgba(76,194,255,.12); --ok: #6ccb5f;
+  --shadow: 0 2px 4px rgba(0,0,0,.2), 0 12px 32px rgba(0,0,0,.3); --shadow-lg: 0 8px 16px rgba(0,0,0,.3), 0 32px 80px rgba(0,0,0,.5);
+  --bloom-1: #0a4b8c; --bloom-2: #3c2a7a; --bloom-3: #0b5a52; --code: rgba(255,255,255,.07);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.6 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; height: auto; display: block; }
+code { font-family: "Cascadia Code", "Cascadia Mono", Consolas, ui-monospace, monospace; font-size: .9em; background: var(--code); padding: 1px 6px; border-radius: 4px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+/* Win11 Bloom 风格的柔光背景 */
+.bloom { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.bloom i { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; }
+.bloom i:nth-child(1) { width: 720px; height: 720px; background: var(--bloom-1); top: -260px; right: -160px; }
+.bloom i:nth-child(2) { width: 560px; height: 560px; background: var(--bloom-2); top: 120px; left: -260px; opacity: .4; }
+.bloom i:nth-child(3) { width: 520px; height: 520px; background: var(--bloom-3); top: 900px; right: -200px; opacity: .3; }
+
+/* 顶栏：亚克力 */
+header.top {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: saturate(160%) blur(24px); -webkit-backdrop-filter: saturate(160%) blur(24px);
+  border-bottom: 1px solid var(--stroke);
+}
+header.top .wrap { display: flex; align-items: center; gap: 20px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text); font-size: 16px; }
+.brand:hover { text-decoration: none; }
+.brand img { width: 28px; height: 28px; }
+nav.links { display: flex; gap: 4px; margin-left: 12px; }
+nav.links a { color: var(--text-2); padding: 6px 12px; border-radius: 6px; font-size: 14px; }
+nav.links a:hover { background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.top-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.icon-btn {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--stroke);
+  background: var(--card); color: var(--text); cursor: pointer; font: inherit; font-size: 13px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.icon-btn:hover { background: var(--card-hover); text-decoration: none; }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* 按钮 */
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 20px; border-radius: 8px;
+  font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+}
+.btn:hover { text-decoration: none; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn-primary { background: var(--accent); color: var(--accent-text); border-color: rgba(0,0,0,.08); box-shadow: inset 0 -1px 0 rgba(0,0,0,.18); }
+.btn-primary:hover { background: var(--accent-2); }
+.btn-secondary { background: var(--card); color: var(--text); border-color: var(--stroke-2); backdrop-filter: blur(20px); }
+.btn-secondary:hover { background: var(--card-hover); }
+
+/* Hero */
+.hero { padding: 72px 0 40px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 48px; align-items: center; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 6px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--stroke); font-size: 13px; color: var(--text-2); backdrop-filter: blur(20px);
+}
+.pill b { background: var(--accent); color: var(--accent-text); border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
+h1 { font-size: clamp(34px, 4.2vw, 54px); line-height: 1.12; margin: 20px 0 16px; font-weight: 700; letter-spacing: -.02em; }
+h1 .grad { white-space: nowrap; background: linear-gradient(100deg, var(--accent), #8a63ff 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lead { font-size: 18px; color: var(--text-2); margin: 0 0 28px; max-width: 34em; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.meta { margin-top: 18px; color: var(--text-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.meta span { display: inline-flex; align-items: center; gap: 6px; }
+.meta svg { width: 14px; height: 14px; }
+
+.showcase { position: relative; }
+.window {
+  border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--stroke-2);
+  background: var(--card-solid); transform: perspective(1600px) rotateY(-6deg) rotateX(2deg); transform-origin: left center;
+  transition: transform .6s cubic-bezier(.2,.8,.2,1);
+}
+.showcase:hover .window { transform: perspective(1600px) rotateY(0) rotateX(0); }
+.window img { width: 100%; aspect-ratio: 1600 / 1246; }
+.tray {
+  position: absolute; right: -18px; bottom: -36px; width: 46%; max-width: 300px; border-radius: 8px; overflow: hidden;
+  box-shadow: var(--shadow-lg); border: 1px solid var(--stroke-2);
+}
+.tray img { width: 100%; }
+
+/* 区块 */
+section { padding: 72px 0; }
+.sec-head { text-align: center; max-width: 720px; margin: 0 auto 40px; }
+.eyebrow { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+h2 { font-size: clamp(28px, 3.4vw, 38px); line-height: 1.2; margin: 8px 0 12px; letter-spacing: -.01em; }
+.sec-head p { color: var(--text-2); margin: 0; font-size: 16px; }
+
+.card {
+  background: var(--card); border: 1px solid var(--stroke); border-radius: 8px; box-shadow: var(--shadow);
+  backdrop-filter: blur(30px) saturate(140%); -webkit-backdrop-filter: blur(30px) saturate(140%);
+}
+
+/* 三步 */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: s; }
+.step { padding: 24px; position: relative; }
+.step::before {
+  counter-increment: s; content: counter(s); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-text); font-weight: 700; margin-bottom: 14px;
+}
+.step h3 { margin: 0 0 6px; font-size: 17px; }
+.step p { margin: 0; color: var(--text-2); font-size: 14px; }
+
+/* 功能 */
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.feature { padding: 22px 22px 20px; transition: background .2s, transform .2s; }
+.feature:hover { background: var(--card-hover); transform: translateY(-2px); }
+.feature .ico {
+  width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; margin-bottom: 14px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.feature .ico svg { width: 22px; height: 22px; }
+.feature h3 { margin: 0 0 6px; font-size: 17px; }
+.feature p { margin: 0 0 10px; color: var(--text-2); font-size: 14px; }
+.feature ul { margin: 0; padding: 0; list-style: none; font-size: 13.5px; color: var(--text-2); }
+.feature li { padding-left: 20px; position: relative; margin: 4px 0; }
+.feature li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 10px; height: 6px; border-left: 2px solid var(--ok); border-bottom: 2px solid var(--ok); transform: rotate(-45deg) translateY(-3px); }
+
+/* 截图画廊 */
+.tabs { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+.tab {
+  border: 1px solid transparent; background: transparent; color: var(--text-2); font: inherit; font-size: 14px;
+  padding: 7px 14px; border-radius: 6px; cursor: pointer;
+}
+.tab:hover { background: var(--accent-soft); color: var(--text); }
+.tab[aria-selected="true"] { background: var(--card); border-color: var(--stroke); color: var(--text); font-weight: 600; box-shadow: var(--shadow); position: relative; }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 16px; height: 3px; border-radius: 2px; background: var(--accent); transform: translateX(-50%); }
+.gallery { max-width: 980px; margin: 0 auto; }
+.gallery .window { transform: none; }
+.gallery .window img { transition: opacity .25s; }
+.gallery figcaption { text-align: center; color: var(--text-3); font-size: 13px; margin-top: 14px; }
+
+/* 穿透对比表 */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--stroke); vertical-align: top; }
+th { color: var(--text-2); font-weight: 600; font-size: 13px; }
+tr:last-child td { border-bottom: 0; }
+td b { font-size: 15px; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 4px; background: var(--accent); color: var(--accent-text); margin-left: 6px; font-weight: 600; vertical-align: 1px; }
+.tag.gray { background: var(--code); color: var(--text-2); }
+
+/* 信任 */
+.trust { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.trust .card { padding: 22px; }
+.trust .num { font-size: 32px; font-weight: 700; color: var(--accent); line-height: 1.1; }
+.trust h3 { margin: 8px 0 4px; font-size: 15px; }
+.trust p { margin: 0; color: var(--text-2); font-size: 13.5px; }
+
+/* 下载 */
+.download { padding: 36px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: center; }
+.download h2 { margin-top: 0; }
+.download p { color: var(--text-2); margin: 0 0 20px; }
+.dl-list { display: grid; gap: 10px; }
+.dl-item {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 8px; border: 1px solid var(--stroke-2);
+  background: var(--card-solid); color: var(--text);
+}
+.dl-item:hover { text-decoration: none; border-color: var(--accent); }
+.dl-item .ico { width: 36px; height: 36px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.dl-item .ico svg { width: 20px; height: 20px; }
+.dl-item b { display: block; font-size: 15px; }
+.dl-item small { color: var(--text-3); font-size: 12.5px; }
+.dl-item .arrow { margin-left: auto; color: var(--text-3); }
+.req { font-size: 13px; color: var(--text-3); margin-top: 14px; }
+
+/* FAQ */
+.faq { max-width: 820px; margin: 0 auto; display: grid; gap: 8px; }
+.faq details { padding: 0; }
+.faq summary {
+  list-style: none; cursor: pointer; padding: 16px 20px; font-weight: 600; display: flex; align-items: center; gap: 12px;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid var(--text-3); border-bottom: 2px solid var(--text-3); transform: rotate(45deg); transition: transform .2s; flex: none; }
+.faq details[open] summary::after { transform: rotate(-135deg); }
+.faq .ans { padding: 0 20px 18px; color: var(--text-2); font-size: 14.5px; }
+.faq .ans p { margin: 0 0 8px; }
+
+footer { border-top: 1px solid var(--stroke); padding: 32px 0 48px; color: var(--text-3); font-size: 13px; margin-top: 40px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+footer .links { margin-left: auto; display: flex; gap: 18px; }
+footer a { color: var(--text-2); }
+
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+@media (max-width: 980px) {
+  .hero .wrap { grid-template-columns: 1fr; }
+  .window { transform: none; }
+  .features { grid-template-columns: repeat(2, 1fr); }
+  .trust { grid-template-columns: repeat(2, 1fr); }
+  .download { grid-template-columns: 1fr; }
+  nav.links { display: none; }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+  .hero { padding-top: 40px; }
+  .steps, .features, .trust { grid-template-columns: 1fr; }
+  .tray { right: -6px; bottom: -28px; width: 52%; }
+  .download { padding: 22px; }
+  section { padding: 56px 0; }
+  .icon-btn .lbl { display: none; }
+  footer .links { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="bloom" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<!-- 图标（Fluent 风格线条图标） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-desktop" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4 4.5h16a1.5 1.5 0 0 1 1.5 1.5v9.5A1.5 1.5 0 0 1 20 17H4a1.5 1.5 0 0 1-1.5-1.5V6A1.5 1.5 0 0 1 4 4.5ZM9 20.5h6M12 17v3.5"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4.5 4h15A1.5 1.5 0 0 1 21 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-13A1.5 1.5 0 0 1 4.5 4ZM7 9l3 3-3 3M12.5 15H17"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6L12 3Zm-3 9 2.2 2.2L15.5 10"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20.5c.8-3.4 3.8-5.5 7.5-5.5s6.7 2.1 7.5 5.5"/></symbol>
+    <symbol id="i-tray" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M3.5 13.5 6 5h12l2.5 8.5M3.5 13.5V18A1.5 1.5 0 0 0 5 19.5h14a1.5 1.5 0 0 0 1.5-1.5v-4.5M3.5 13.5h5l1 2h5l1-2h5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></symbol>
+    <symbol id="i-zip" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M6.5 3h8L19 7.5V19.5A1.5 1.5 0 0 1 17.5 21h-11A1.5 1.5 0 0 1 5 19.5v-15A1.5 1.5 0 0 1 6.5 3ZM11 3v2m0 2v2m0 2v2m-1 2h2v3h-2z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-auto" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/><path fill="currentColor" d="M12 3a9 9 0 0 1 0 18V3Z"/></symbol>
+    <symbol id="i-lang" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M3.5 5.5h9M8 3.5v2M10.5 5.5c-.8 3.6-3.2 6.5-6.5 8M6 8.5c1 2 2.6 3.6 4.5 4.6M12.5 20.5l4-9.5 4 9.5M14 17h5"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="assets/logo.png" alt="" />RdpHelper</a>
+    <nav class="links">
+      <a href="#features" data-i18n="nav.features"></a>
+      <a href="#screens" data-i18n="nav.screens"></a>
+      <a href="#tunnel" data-i18n="nav.tunnel"></a>
+      <a href="#faq" data-i18n="nav.faq"></a>
+      <a href="#download" data-i18n="nav.download"></a>
+    </nav>
+    <div class="top-actions">
+      <button class="icon-btn" id="langBtn" type="button" aria-label="Language"><svg><use href="#i-lang"/></svg><span class="lbl" id="langLbl">English</span></button>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Theme"><svg><use id="themeIco" href="#i-auto"/></svg></button>
+      <a class="icon-btn" href="https://github.com/Flowers-hurt/RdpHelper" aria-label="GitHub"><svg><use href="#i-github"/></svg><span class="lbl" id="starCount">GitHub</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="pill"><b id="verPill">Windows</b><span data-i18n="hero.pill"></span></span>
+        <h1 data-i18n="hero.title"></h1>
+        <p class="lead" data-i18n="hero.lead"></p>
+        <div class="cta">
+          <a class="btn btn-primary" id="ctaDownload" href="https://github.com/Flowers-hurt/RdpHelper/releases/latest"><svg><use href="#i-download"/></svg><span data-i18n="hero.download"></span></a>
+          <a class="btn btn-secondary" href="https://github.com/Flowers-hurt/RdpHelper"><svg><use href="#i-github"/></svg><span data-i18n="hero.source"></span></a>
+        </div>
+        <div class="meta">
+          <span><svg><use href="#i-check"/></svg><span data-i18n="hero.m1"></span></span>
+          <span><svg><use href="#i-check"/></svg><span data-i18n="hero.m2"></span></span>
+          <span><svg><use href="#i-check"/></svg><span data-i18n="hero.m3"></span></span>
+        </div>
+      </div>
+      <div class="showcase">
+        <div class="window"><img id="heroShot" alt="RdpHelper" width="1600" height="1246" /></div>
+        <div class="tray"><img id="trayShot" alt="" width="302" height="318" /></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow" data-i18n="how.eyebrow"></div>
+        <h2 data-i18n="how.title"></h2>
+        <p data-i18n="how.sub"></p>
+      </div>
+      <div class="steps">
+        <div class="card step reveal"><h3 data-i18n="how.s1"></h3><p data-i18n="how.s1d"></p></div>
+        <div class="card step reveal"><h3 data-i18n="how.s2"></h3><p data-i18n="how.s2d"></p></div>
+        <div class="card step reveal"><h3 data-i18n="how.s3"></h3><p data-i18n="how.s3d"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow" data-i18n="feat.eyebrow"></div>
+        <h2 data-i18n="feat.title"></h2>
+        <p data-i18n="feat.sub"></p>
+      </div>
+      <div class="features" id="featureGrid"></div>
+    </div>
+  </section>
+
+  <section id="screens">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow" data-i18n="shots.eyebrow"></div>
+        <h2 data-i18n="shots.title"></h2>
+        <p data-i18n="shots.sub"></p>
+      </div>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <figure class="gallery reveal" style="margin:0">
+        <div class="window"><img id="galleryShot" alt="" width="1600" height="1246" /></div>
+        <figcaption data-i18n="shots.caption"></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="tunnel">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow" data-i18n="tun.eyebrow"></div>
+        <h2 data-i18n="tun.title"></h2>
+        <p data-i18n="tun.sub"></p>
+      </div>
+      <div class="card table-wrap reveal">
+        <table>
+          <thead><tr><th data-i18n="tun.h1"></th><th data-i18n="tun.h2"></th><th data-i18n="tun.h3"></th><th data-i18n="tun.h4"></th></tr></thead>
+          <tbody id="tunnelRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="trust">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow" data-i18n="trust.eyebrow"></div>
+        <h2 data-i18n="trust.title"></h2>
+      </div>
+      <div class="trust" id="trustGrid"></div>
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="wrap">
+      <div class="card download reveal">
+        <div>
+          <div class="eyebrow" data-i18n="dl.eyebrow"></div>
+          <h2 data-i18n="dl.title"></h2>
+          <p data-i18n="dl.sub"></p>
+          <div class="req" data-i18n="dl.req"></div>
+        </div>
+        <div class="dl-list">
+          <a class="dl-item" id="dlSetup" href="https://github.com/Flowers-hurt/RdpHelper/releases/latest">
+            <span class="ico"><svg><use href="#i-download"/></svg></span>
+            <span><b data-i18n="dl.setup"></b><small id="dlSetupMeta" data-i18n="dl.setupd"></small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="dl-item" id="dlZip" href="https://github.com/Flowers-hurt/RdpHelper/releases/latest">
+            <span class="ico"><svg><use href="#i-zip"/></svg></span>
+            <span><b data-i18n="dl.zip"></b><small id="dlZipMeta" data-i18n="dl.zipd"></small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="dl-item" href="https://github.com/Flowers-hurt/RdpHelper/releases">
+            <span class="ico"><svg><use href="#i-github"/></svg></span>
+            <span><b data-i18n="dl.all"></b><small data-i18n="dl.alld"></small></span>
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow">FAQ</div>
+        <h2 data-i18n="faq.title"></h2>
+      </div>
+      <div class="faq" id="faqList"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year"></span> RdpHelper · <span data-i18n="foot.license"></span></span>
+    <div class="links">
+      <a href="https://github.com/Flowers-hurt/RdpHelper" data-i18n="foot.source"></a>
+      <a href="https://github.com/Flowers-hurt/RdpHelper/issues" data-i18n="foot.issues"></a>
+      <a href="https://github.com/Flowers-hurt/RdpHelper/blob/main/CONTRIBUTING.md" data-i18n="foot.contrib"></a>
+      <a href="https://github.com/Flowers-hurt/RdpHelper/blob/main/SECURITY.md" data-i18n="foot.security"></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const REPO = "Flowers-hurt/RdpHelper";
+const T = {
+  zh: {
+    "nav.features": "功能", "nav.screens": "截图", "nav.tunnel": "内网穿透", "nav.faq": "常见问题", "nav.download": "下载",
+    "hero.pill": "免费开源 · MIT 许可",
+    "hero.title": '一键开启<br><span class="grad">Windows 远程桌面</span>',
+    "hero.lead": "仿 Windows 11「设置」的远程助手：一个开关开启远程桌面或 SSH，一个按钮改端口、设黑白名单，一个按钮把连接信息复制给对方。不在同一网络？bore 一键穿透，免注册。",
+    "hero.download": "下载 Windows 版", "hero.source": "查看源码",
+    "hero.m1": "单文件免安装依赖", "hero.m2": "安装包自带 OpenSSH", "hero.m3": "中文 / English",
+    "how.eyebrow": "三步上手", "how.title": "让别人连进来，只要三步",
+    "how.sub": "不用翻设置、改注册表、配防火墙，RdpHelper 都替你做好了。",
+    "how.s1": "打开远程桌面", "how.s1d": "点一下开关：自动写注册表、放行防火墙、拉起远程桌面服务。需要命令行就开 SSH。",
+    "how.s2": "复制连接信息", "how.s2d": "计算机名、用户名、局域网 / 公网地址和连接方法一键复制，发给对方即可（不含密码）。",
+    "how.s3": "对方连接", "how.s3d": "对方按 Win + R 运行 mstsc 输入地址；不在同一网络就开 bore 穿透，用公网地址连。",
+    "feat.eyebrow": "功能", "feat.title": "远程访问需要的，都在一个窗口里",
+    "feat.sub": "每一项改动都对应真实的系统设置，界面上能看到它到底改了什么。",
+    "shots.eyebrow": "界面", "shots.title": "Win11 原生风格，亚克力毛玻璃",
+    "shots.sub": "跟随系统深浅色，支持亚克力 / 云母 / 云母 Alt 三种窗口材质。",
+    "shots.caption": "截图由 CI 在真实 Windows 上运行程序后自动渲染，展示的都是真实状态。切换右上角的语言和主题，截图也会跟着变。",
+    "tun.eyebrow": "内网穿透", "tun.title": "不在同一个网络，也能连",
+    "tun.sub": "穿透组件不随安装包分发，只在你点「下载组件」时从官方地址获取。默认推荐 bore，其余两家在「更多服务商」里。",
+    "tun.h1": "服务商", "tun.h2": "注册", "tun.h3": "组件大小", "tun.h4": "对方怎么连",
+    "trust.eyebrow": "可信", "trust.title": "开源、可审计、每次发布都经过真机测试",
+    "dl.eyebrow": "下载", "dl.title": "免费下载 RdpHelper",
+    "dl.sub": "推荐安装版：带开始菜单快捷方式，卸载时会恢复系统默认的防火墙放行规则。便携版解压即用。",
+    "dl.req": "支持 Windows 10 / 11 / Server（x64）。远程桌面主机需要专业版及以上；家庭版可以用 SSH，或在程序里通过正规途径升级到专业版。",
+    "dl.setup": "安装版（推荐）", "dl.setupd": "RdpHelper-Setup-x64.exe",
+    "dl.zip": "便携版", "dl.zipd": "RdpHelper-portable-x64.zip",
+    "dl.all": "所有版本与更新日志", "dl.alld": "GitHub Releases",
+    "faq.title": "常见问题",
+    "foot.license": "MIT 开源许可", "foot.source": "源码", "foot.issues": "反馈问题", "foot.contrib": "参与贡献", "foot.security": "安全策略",
+    "theme.auto": "跟随系统", "theme.light": "浅色", "theme.dark": "深色",
+    "dl.meta": "{v} · {size} MB · 下载 {n} 次",
+    "star": "{n} 星",
+    features: [
+      { ico: "desktop", t: "远程桌面", d: "开关、端口、身份验证，一处搞定。", li: ["一键开启 / 关闭，自动放行防火墙", "自定义端口、随机端口、恢复 3389", "网络级别身份验证（NLA）开关", "列出局域网 IP 并标出推荐地址"] },
+      { ico: "terminal", t: "OpenSSH", d: "安装包自带微软官方 Win32-OpenSSH。", li: ["离线安装，十几秒装好，带进度条", "开启 sshd 并设为开机自启", "自定义端口 / 恢复 22", "公钥登录，可关闭密码登录"] },
+      { ico: "shield", t: "访问控制", d: "用 Windows 防火墙限制谁能连进来。", li: ["IP 白名单：只允许名单内的地址", "IP 黑名单：优先拦截", "支持单 IP、IPv6、CIDR、范围", "远程桌面和 SSH 分别设置"] },
+      { ico: "globe", t: "内网穿透", d: "不在同一网络时一键拿到公网地址。", li: ["bore：免注册，组件约 1 MB", "Cloudflare Tunnel / ngrok 可选", "组件按需从官方地址下载", "退出程序时穿透进程一并结束"] },
+      { ico: "person", t: "账户与密码", d: "空密码账户 Windows 会拒绝远程登录。", li: ["检测空密码和微软账户", "一键给当前账户设置密码", "创建远程专用账户，可禁用 / 删除", "拖入 .pub 文件添加 SSH 公钥"] },
+      { ico: "tray", t: "托盘常驻", d: "关闭窗口后在后台运行，可在设置里改。", li: ["Win11 风格托盘面板，显示运行状态", "托盘里一键复制连接信息", "再次打开会唤醒已有窗口", "中英双语、浅色 / 深色主题"] }
+    ],
+    tabs: [["remote", "远程桌面"], ["ssh", "SSH"], ["access", "访问控制"], ["tunnel", "内网穿透"], ["accounts", "账户与密码"], ["settings", "设置"], ["about", "关于"]],
+    tunnels: [
+      ["bore", "推荐", "免注册", "约 1 MB", "mstsc 连 <code>bore.pub:端口</code>"],
+      ["Cloudflare Tunnel", "", "免注册", "约 60 MB", "对方也用 RdpHelper 的「连接别人的电脑」"],
+      ["ngrok", "", "需要账号 Authtoken", "约 30 MB", "mstsc 连 <code>x.tcp.ngrok.io:端口</code>"]
+    ],
+    trust: [
+      ["33", "项真机自测", "每次构建都在 GitHub Actions 的 Windows 上真实开关远程桌面、改端口、装 SSH、跑穿透。"],
+      ["0", "内置穿透程序", "安装包里没有任何穿透组件，需要时才从官方地址下载，安装包干净可审计。"],
+      ["MIT", "开源许可", "全部源码公开，可以自由使用、修改和分发。"],
+      ["0", "破解与绕过", "不修改系统文件，不做激活绕过，家庭版只提供微软正规的升级途径。"]
+    ],
+    faq: [
+      ["退出 RdpHelper 后，远程桌面和 SSH 还能用吗？", "<p>能。远程桌面和 SSH 是 Windows 的系统服务，RdpHelper 只是帮你改设置，退出后照常可用、开机也会自动启动。只有内网穿透需要程序在运行，所以默认关闭窗口时会收进托盘。</p>"],
+      ["连接时一直提示密码错误，或者我的电脑根本没有密码？", "<p>Windows 不允许空密码账户远程登录。到「账户与密码」页给当前账户设置密码，或者新建一个远程专用账户。用微软账户登录的电脑，远程时要用微软账户的密码，而不是 PIN。</p>"],
+      ["家庭版能用吗？", "<p>Windows 家庭版不能作为远程桌面主机，这是系统限制。可以改用 SSH；或者在程序里通过 Microsoft Store、自有产品密钥等正规途径升级到专业版。</p>"],
+      ["两个人能不能同时用不同账户登录同一台电脑？", "<p>Windows 家庭版 / 专业版同一时间只允许一个人使用桌面，另一个账户连进来会让当前用户断开（程序不会关闭）。需要多人同时使用请用 Windows Server 远程桌面服务；只需要命令行的话，SSH 可以多人同时连且互不影响。RdpHelper 不会修改系统文件去绕过这个限制。</p>"],
+      ["会不会把我的密码发出去？", "<p>不会。「复制连接信息」只包含计算机名、用户名、地址和连接方法，不包含密码。全部源码公开，可以自行审查程序会访问哪些网络地址。</p>"],
+      ["卸载后会留下什么？", "<p>卸载时会删除 RdpHelper 创建的防火墙规则，并重新启用系统自带的远程桌面放行规则，避免卸载后连不上。你打开的远程桌面 / SSH 设置会保留。</p>"]
+    ]
+  },
+  en: {
+    "nav.features": "Features", "nav.screens": "Screenshots", "nav.tunnel": "Tunneling", "nav.faq": "FAQ", "nav.download": "Download",
+    "hero.pill": "Free & open source · MIT",
+    "hero.title": 'Windows Remote Desktop,<br><span class="grad">one click away</span>',
+    "hero.lead": "A remote access helper styled like Windows 11 Settings. Flip one switch to enable Remote Desktop or SSH, change the port, set IP allow/deny lists, and copy the connection details to share. Not on the same network? Open a bore tunnel with no sign-up.",
+    "hero.download": "Download for Windows", "hero.source": "View source",
+    "hero.m1": "Single file, no runtime needed", "hero.m2": "OpenSSH bundled", "hero.m3": "English / 中文",
+    "how.eyebrow": "Get started", "how.title": "Let someone in, in three steps",
+    "how.sub": "No digging through Settings, the registry or firewall rules. RdpHelper does it for you.",
+    "how.s1": "Turn on Remote Desktop", "how.s1d": "One switch writes the registry, opens the firewall and starts the Remote Desktop service. Need a shell? Turn on SSH.",
+    "how.s2": "Copy connection info", "how.s2d": "Computer name, user name, LAN / public address and how to connect, copied in one click (never your password).",
+    "how.s3": "They connect", "how.s3d": "They press Win + R, run mstsc and enter the address. On another network? Start a bore tunnel and use the public address.",
+    "feat.eyebrow": "Features", "feat.title": "Everything remote access needs, in one window",
+    "feat.sub": "Every option maps to a real system setting, and the app shows exactly what it changes.",
+    "shots.eyebrow": "Interface", "shots.title": "Native Windows 11 look, with acrylic",
+    "shots.sub": "Follows your light / dark theme, with Acrylic, Mica and Mica Alt window materials.",
+    "shots.caption": "Screenshots are rendered by CI from the real app running on Windows, showing real state. Switch language or theme at the top right and they follow.",
+    "tun.eyebrow": "Tunneling", "tun.title": "Connect from anywhere",
+    "tun.sub": "Tunnel tools are not bundled; they are downloaded from the official source only when you click Download. bore is the default; the others are under More providers.",
+    "tun.h1": "Provider", "tun.h2": "Sign-up", "tun.h3": "Size", "tun.h4": "How they connect",
+    "trust.eyebrow": "Trust", "trust.title": "Open source, auditable, tested on real Windows every release",
+    "dl.eyebrow": "Download", "dl.title": "Get RdpHelper for free",
+    "dl.sub": "The installer adds a Start menu shortcut and restores the default Windows firewall rules on uninstall. The portable build runs straight from the zip.",
+    "dl.req": "Windows 10 / 11 / Server (x64). Hosting Remote Desktop needs Pro or higher; on Home you can use SSH or upgrade to Pro through official channels from the app.",
+    "dl.setup": "Installer (recommended)", "dl.setupd": "RdpHelper-Setup-x64.exe",
+    "dl.zip": "Portable", "dl.zipd": "RdpHelper-portable-x64.zip",
+    "dl.all": "All versions & changelog", "dl.alld": "GitHub Releases",
+    "faq.title": "Frequently asked questions",
+    "foot.license": "MIT License", "foot.source": "Source", "foot.issues": "Issues", "foot.contrib": "Contributing", "foot.security": "Security",
+    "theme.auto": "System", "theme.light": "Light", "theme.dark": "Dark",
+    "dl.meta": "{v} · {size} MB · {n} downloads",
+    "star": "{n} stars",
+    features: [
+      { ico: "desktop", t: "Remote Desktop", d: "Switch, port and authentication in one place.", li: ["Turn on / off with firewall rules handled", "Custom port, random port, reset to 3389", "Network Level Authentication toggle", "Lists LAN IPs and marks the best one"] },
+      { ico: "terminal", t: "OpenSSH", d: "Microsoft's Win32-OpenSSH ships in the installer.", li: ["Offline install in seconds, with progress", "Starts sshd and enables it at boot", "Custom port / reset to 22", "Public key login, password login can be disabled"] },
+      { ico: "shield", t: "Access control", d: "Use Windows Firewall to decide who gets in.", li: ["Allow list: only these addresses", "Deny list: always blocked first", "Single IP, IPv6, CIDR and ranges", "Separate lists for RDP and SSH"] },
+      { ico: "globe", t: "Tunneling", d: "Get a public address when you are not on the same network.", li: ["bore: no sign-up, about 1 MB", "Cloudflare Tunnel / ngrok optional", "Tools downloaded on demand from official sources", "Tunnels stop when the app exits"] },
+      { ico: "person", t: "Accounts & passwords", d: "Windows refuses remote logins with a blank password.", li: ["Detects blank passwords and Microsoft accounts", "Set a password for the current account", "Create remote-only accounts, disable or delete them", "Drop a .pub file to add an SSH key"] },
+      { ico: "tray", t: "System tray", d: "Keeps running in the background after you close it (configurable).", li: ["Windows 11 style tray panel with live status", "Copy connection info from the tray", "Launching again brings back the open window", "English / Chinese, light / dark themes"] }
+    ],
+    tabs: [["remote", "Remote Desktop"], ["ssh", "SSH"], ["access", "Access control"], ["tunnel", "Tunneling"], ["accounts", "Accounts"], ["settings", "Settings"], ["about", "About"]],
+    tunnels: [
+      ["bore", "Recommended", "None", "~1 MB", "mstsc to <code>bore.pub:port</code>"],
+      ["Cloudflare Tunnel", "", "None", "~60 MB", "The other side uses RdpHelper's “Visit another PC”"],
+      ["ngrok", "", "Account Authtoken", "~30 MB", "mstsc to <code>x.tcp.ngrok.io:port</code>"]
+    ],
+    trust: [
+      ["33", "real-machine self-tests", "Every build really toggles Remote Desktop, changes ports, installs SSH and opens tunnels on Windows in GitHub Actions."],
+      ["0", "bundled tunnel binaries", "Nothing is bundled; tunnel tools are fetched from official sources only when needed."],
+      ["MIT", "license", "All source code is public. Use, modify and share it freely."],
+      ["0", "hacks or bypasses", "No patched system files, no activation tricks. Home edition only gets Microsoft's official upgrade paths."]
+    ],
+    faq: [
+      ["Do Remote Desktop and SSH still work after I exit RdpHelper?", "<p>Yes. They are Windows system services; RdpHelper just changes their settings, so they keep working and start at boot. Only tunnels need the app running, which is why closing the window minimizes to the tray by default.</p>"],
+      ["It keeps saying my password is wrong, or my PC has no password", "<p>Windows does not allow remote logins to accounts with a blank password. Set one on the Accounts page, or create a remote-only account. If you sign in with a Microsoft account, use its password, not your PIN.</p>"],
+      ["Does it work on Windows Home?", "<p>Windows Home cannot host Remote Desktop; that is an OS limitation. You can use SSH instead, or upgrade to Pro from the app through the Microsoft Store or your own product key.</p>"],
+      ["Can two people use different accounts on the same PC at once?", "<p>Windows Home / Pro allow one desktop user at a time; a second account signing in disconnects the current user (their apps keep running). For simultaneous desktops use Windows Server Remote Desktop Services. For command-line work, SSH supports many concurrent sessions. RdpHelper never patches system files to bypass this.</p>"],
+      ["Does it send my password anywhere?", "<p>No. Copied connection info contains the computer name, user name, address and instructions, never the password. All source code is public, so you can check every network address the app talks to.</p>"],
+      ["What is left after uninstalling?", "<p>The uninstaller removes RdpHelper's firewall rules and re-enables the built-in Remote Desktop rules so you are not locked out. Your Remote Desktop / SSH settings are kept.</p>"]
+    ]
+  }
+};
+
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+let lang = store.get("lang") || ((navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en");
+let theme = store.get("theme") || "auto";
+let page = "remote";
+let release = null;
+let stars = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k]);
+const dark = () => theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+
+function shot(p) { return `shots/${lang}/${p}-${dark() ? "dark" : "light"}.jpg`; }
+
+function renderShots() {
+  $("#heroShot").src = shot("remote");
+  const tray = $("#trayShot"), tm = dark() ? "dark" : "light";
+  tray.onerror = () => { tray.onerror = null; tray.src = `assets/tray-en-${tm}.png`; };
+  tray.src = `assets/tray-${lang}-${tm}.png`;
+  const g = $("#galleryShot");
+  g.style.opacity = .35;
+  const img = new Image();
+  img.onload = () => { g.src = img.src; g.style.opacity = 1; };
+  img.onerror = () => { g.style.opacity = 1; };
+  img.src = shot(page);
+  g.alt = (T[lang].tabs.find(t => t[0] === page) || [])[1] || "";
+}
+
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  document.title = lang === "zh" ? "RdpHelper 远程桌面助手" : "RdpHelper · One-click Windows Remote Desktop";
+  document.querySelectorAll("[data-i18n]").forEach(el => { if (t[el.dataset.i18n] != null) el.innerHTML = t[el.dataset.i18n]; });
+  $("#langLbl").textContent = lang === "zh" ? "English" : "中文";
+
+  $("#featureGrid").innerHTML = t.features.map(f => `
+    <div class="card feature reveal in">
+      <div class="ico"><svg><use href="#i-${f.ico}"/></svg></div>
+      <h3>${f.t}</h3><p>${f.d}</p>
+      <ul>${f.li.map(x => `<li>${x}</li>`).join("")}</ul>
+    </div>`).join("");
+
+  $("#tabs").innerHTML = t.tabs.map(([k, n]) =>
+    `<button class="tab" role="tab" type="button" data-k="${k}" aria-selected="${k === page}">${n}</button>`).join("");
+
+  $("#tunnelRows").innerHTML = t.tunnels.map(r => `
+    <tr><td><b>${r[0]}</b>${r[1] ? `<span class="tag">${r[1]}</span>` : ""}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join("");
+
+  $("#trustGrid").innerHTML = t.trust.map(r => `
+    <div class="card reveal in"><div class="num">${r[0]}</div><h3>${r[1]}</h3><p>${r[2]}</p></div>`).join("");
+
+  $("#faqList").innerHTML = t.faq.map((q, i) => `
+    <details class="card reveal in"${i === 0 ? " open" : ""}><summary>${q[0]}</summary><div class="ans">${q[1]}</div></details>`).join("");
+
+  renderRelease();
+  if (stars != null) $("#starCount").textContent = fmt(t.star, { n: stars });
+  renderShots();
+  renderTheme();
+}
+
+function renderTheme() {
+  document.documentElement.dataset.theme = theme;
+  $("#themeIco").setAttribute("href", theme === "auto" ? "#i-auto" : theme === "dark" ? "#i-moon" : "#i-sun");
+  const label = T[lang]["theme." + theme];
+  $("#themeBtn").title = label; $("#themeBtn").setAttribute("aria-label", label);
+}
+
+function renderRelease() {
+  if (!release) return;
+  const t = T[lang];
+  const v = release.tag_name;
+  $("#verPill").textContent = v;
+  const find = re => (release.assets || []).find(a => re.test(a.name));
+  const setup = find(/Setup.*\.exe$/i), zip = find(/portable.*\.zip$/i);
+  const meta = a => fmt(t["dl.meta"], { v, size: (a.size / 1048576).toFixed(0), n: a.download_count.toLocaleString() });
+  if (setup) { $("#dlSetup").href = setup.browser_download_url; $("#dlSetupMeta").textContent = meta(setup); $("#ctaDownload").href = setup.browser_download_url; }
+  if (zip) { $("#dlZip").href = zip.browser_download_url; $("#dlZipMeta").textContent = meta(zip); }
+}
+
+$("#langBtn").onclick = () => { lang = lang === "zh" ? "en" : "zh"; store.set("lang", lang); render(); };
+$("#themeBtn").onclick = () => { theme = { auto: "light", light: "dark", dark: "auto" }[theme]; store.set("theme", theme); renderTheme(); renderShots(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (theme === "auto") renderShots(); });
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  page = b.dataset.k;
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === b));
+  renderShots();
+});
+$("#year").textContent = new Date().getFullYear();
+
+// 滚动进入时淡入
+const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+}), { rootMargin: "0px 0px -60px 0px" }) : null;
+document.querySelectorAll(".reveal").forEach(el => io ? io.observe(el) : el.classList.add("in"));
+
+render();
+
+// 最新版本与下载链接（GitHub 公开 API；失败时保留指向 Releases 页的链接）
+fetch(`https://api.github.com/repos/${REPO}/releases/latest`).then(r => r.ok ? r.json() : null).then(j => { if (j) { release = j; renderRelease(); } }).catch(() => {});
+fetch(`https://api.github.com/repos/${REPO}`).then(r => r.ok ? r.json() : null).then(j => {
+  if (j && typeof j.stargazers_count === "number") { stars = j.stargazers_count; $("#starCount").textContent = fmt(T[lang].star, { n: stars }); }
+}).catch(() => {});
+</script>
+</body>
+</html>
