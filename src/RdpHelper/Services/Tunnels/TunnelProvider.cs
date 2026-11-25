@@ -25,7 +25,28 @@ public abstract partial class TunnelProvider
 
     public string ToolDir => Path.Combine(AppPaths.Tools, Id);
     public string ExePath => Path.Combine(ToolDir, ExeName);
-    public bool IsInstalled => File.Exists(ExePath);
+    public bool IsInstalled => File.Exists(ExePath) || TryUseBundled();
+
+    /// <summary>随安装包内置的组件文件名（放在程序目录 redist\ 下）；null 表示不内置、需要下载。</summary>
+    protected virtual string? BundledFileName => null;
+
+    public string? BundledPath => BundledFileName is { } f ? Path.Combine(AppContext.BaseDirectory, "redist", f) : null;
+
+    /// <summary>安装包里带了这个组件（bore 约 1 MB，内置后断网 / 连不上 GitHub 也能直接用）。</summary>
+    public bool IsBundled => BundledPath is { } b && File.Exists(b);
+
+    /// <summary>组件目录里还没有时，把内置的那份拷过去（之后「重新下载 / 更新」或导入的版本会覆盖它）。</summary>
+    private bool TryUseBundled()
+    {
+        if (!IsBundled) return false;
+        try
+        {
+            Directory.CreateDirectory(ToolDir);
+            File.Copy(BundledPath!, ExePath, true);
+            return true;
+        }
+        catch { return false; }
+    }
 
     public string? PublicAddress { get; private set; }
     public bool IsRunning => _proc is { HasExited: false };
@@ -57,11 +78,23 @@ public abstract partial class TunnelProvider
         DownloadFraction = -1;
         DownloadText = "";
         StateChanged?.Invoke();
-        try { await InstallCoreAsync(progress, ct); }
+        try
+        {
+            for (int attempt = 1; ; attempt++)
+            {
+                try { await InstallCoreAsync(progress, ct); break; }
+                catch (Exception ex) when (attempt < 3 && !ct.IsCancellationRequested && IsTransient(ex))
+                {
+                    Emit(L.F("下载出错，{0} 秒后重试（第 {1} 次）：{2}", attempt * 2, attempt + 1, ex.Message));
+                    await Task.Delay(attempt * 2000, ct);
+                }
+            }
+        }
         catch (Exception ex)
         {
-            Emit(L.F("下载失败：{0}", ex.Message));
-            throw;
+            var msg = ExplainNetworkError(ex);
+            Emit(L.F("下载失败：{0}", msg));
+            throw new InvalidOperationException(msg, ex);
         }
         finally
         {
@@ -152,6 +185,9 @@ public abstract partial class TunnelProvider
 
     protected abstract string BuildArgs(int port, RemoteKind target);
 
+    /// <summary>根据进程最后几行输出给出人能看懂的失败原因；null 表示没有特别说明。</summary>
+    protected virtual string? ExplainStartFailure(string tail) => null;
+
     /// <summary>从一行输出中解析公网地址；解析不到返回 null。</summary>
     protected abstract string? ParseAddress(string line);
 
@@ -200,7 +236,7 @@ public abstract partial class TunnelProvider
             Emit(L.F("进程已退出（代码 {0}）", SafeExitCode(p)));
             string tail;
             lock (_recent) tail = string.Join("\n", _recent.TakeLast(6));
-            tcs.TrySetException(new InvalidOperationException(L.F("{0} 启动失败：", Name) + "\n" + tail));
+            tcs.TrySetException(new InvalidOperationException(L.F("{0} 启动失败：", Name) + "\n" + (ExplainStartFailure(tail) is { } hint ? hint + "\n\n" : "") + tail));
             if (ReferenceEquals(_proc, p))
             {
                 _proc = null;
@@ -267,6 +303,31 @@ public abstract partial class TunnelProvider
             if (match(name)) return a.GetProperty("browser_download_url").GetString()!;
         }
         throw new InvalidOperationException(L.F("在 {0} 最新版本里没有找到 Windows 安装包", repo));
+    }
+
+    private static bool IsTransient(Exception ex) =>
+        ex is HttpRequestException or IOException or TaskCanceledException { InnerException: TimeoutException };
+
+    /// <summary>把底层网络错误（常见是系统语言的原始报错，如「由于目标计算机积极拒绝」）说成人话，并给出办法。</summary>
+    public static string ExplainNetworkError(Exception ex)
+    {
+        var inner = ex;
+        while (inner.InnerException != null && inner is not System.Net.Sockets.SocketException) inner = inner.InnerException;
+        string why = inner switch
+        {
+            System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.ConnectionRefused } =>
+                L.T("连接被拒绝：本机网络或代理拦截了下载地址（常见于公司网络、校园网，或开着代理软件但代理没在运行）。"),
+            System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.HostNotFound or System.Net.Sockets.SocketError.NoData } =>
+                L.T("域名解析失败：请检查网络或 DNS 设置。"),
+            System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.TimedOut } or TimeoutException or TaskCanceledException =>
+                L.T("连接超时：访问 GitHub 等国外地址很慢或被拦截。"),
+            System.Security.Authentication.AuthenticationException =>
+                L.T("安全连接失败：可能被网络中间设备或代理拦截。"),
+            HttpRequestException { StatusCode: { } code } =>
+                L.F("服务器返回 {0}，可能是下载地址暂时不可用或访问太频繁，稍后再试。", (int)code),
+            _ => ex.Message,
+        };
+        return why + " " + L.T("可以换个网络 / 开代理后重试，或用浏览器手动下载后点「导入本地 exe」。");
     }
 
     private static int SafeExitCode(Process p) { try { return p.ExitCode; } catch { return -1; } }

@@ -162,9 +162,9 @@ public partial class SshPage : Page
         });
     }
 
-    private void CopyCmd_Click(object sender, RoutedEventArgs e)
+    private async void CopyCmd_Click(object sender, RoutedEventArgs e)
     {
-        if (RemoteInfo.CopyToClipboard(CommandText.Text)) Notify.Success(L.T("已复制"), CommandText.Text);
+        if (await RemoteInfo.CopyToClipboardAsync(CommandText.Text)) Notify.Success(L.T("已复制"), CommandText.Text);
     }
 
     private async Task Busy(ProgressRing ring, Func<Task> action)

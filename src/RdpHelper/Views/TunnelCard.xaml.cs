@@ -53,7 +53,9 @@ public partial class TunnelCard : UserControl
     {
         bool installed = _p.IsInstalled;
         bool running = _p.IsRunning;
-        PathText.Text = installed ? L.F("已下载：{0}", _p.ExePath) : L.F("未下载 · 将下载到 {0}（不随安装包分发，按需下载）", _p.ToolDir);
+        PathText.Text = installed
+            ? (_p.IsBundled ? L.F("已内置（随安装包分发）：{0}", _p.ExePath) : L.F("已下载：{0}", _p.ExePath))
+            : L.F("未下载 · 将下载到 {0}（不随安装包分发，按需下载）", _p.ToolDir);
         DownloadButton.Content = installed ? L.T("重新下载 / 更新") : L.T("下载组件");
         DownloadButton.IsEnabled = !_p.IsDownloading && !running;
         DownloadProgress.Visibility = _p.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
@@ -64,7 +66,7 @@ public partial class TunnelCard : UserControl
             PathText.Text = L.T("正在下载…") + " " + _p.DownloadText;
             Expander.IsExpanded = true;
         }
-        UninstallButton.IsEnabled = installed && !running && !_p.IsDownloading;
+        UninstallButton.IsEnabled = installed && !running && !_p.IsDownloading && !_p.IsBundled;
         StartButton.IsEnabled = installed && !running && !_p.IsDownloading;
         StopButton.IsEnabled = running;
         TargetBox.IsEnabled = !running;
@@ -80,7 +82,7 @@ public partial class TunnelCard : UserControl
         else
         {
             StateDot.Fill = running ? RemotePage.Orange : installed ? RemotePage.Gray : RemotePage.Gray;
-            StateText.Text = running ? L.T("连接中…") : installed ? L.T("已下载") : L.T("未下载");
+            StateText.Text = running ? L.T("连接中…") : installed ? (_p.IsBundled ? L.T("已内置") : L.T("已下载")) : L.T("未下载");
             AddressPanel.Visibility = Visibility.Collapsed;
         }
 
@@ -187,15 +189,15 @@ public partial class TunnelCard : UserControl
         Notify.Info(L.F("{0} 已停止", _p.Name));
     }
 
-    private void CopyAddress_Click(object sender, RoutedEventArgs e)
+    private async void CopyAddress_Click(object sender, RoutedEventArgs e)
     {
-        if (_p.PublicAddress != null && RemoteInfo.CopyToClipboard(_p.PublicAddress))
+        if (_p.PublicAddress != null && await RemoteInfo.CopyToClipboardAsync(_p.PublicAddress))
             Notify.Success(L.T("已复制公网地址"), _p.PublicAddress);
     }
 
     private async void CopyAll_Click(object sender, RoutedEventArgs e)
     {
         var text = RemoteInfo.Build(await SshService.IsRunningAsync());
-        if (RemoteInfo.CopyToClipboard(text)) Notify.Success(L.T("已复制完整连接信息"), L.T("包含局域网和公网地址，可直接发给对方"));
+        if (await RemoteInfo.CopyToClipboardAsync(text)) Notify.Success(L.T("已复制完整连接信息"), L.T("包含局域网和公网地址，可直接发给对方"));
     }
 }

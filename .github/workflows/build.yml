@@ -53,6 +53,14 @@ jobs:
           else { Invoke-WebRequest https://raw.githubusercontent.com/PowerShell/openssh-portable/latestw_all/LICENCE -OutFile publish\redist\OpenSSH-LICENSE.txt }
           "Win32-OpenSSH $($r.tag_name)" | Set-Content publish\redist\OpenSSH-VERSION.txt
           Copy-Item installer\restore-firewall.ps1 publish\
+          # bore（MIT）随安装包内置：有人连 GitHub 都下载不了，bore 体积很小，直接打包进去
+          $b = Invoke-RestMethod https://api.github.com/repos/ekzhang/bore/releases/latest -Headers @{ Authorization = "Bearer ${{ github.token }}" }
+          $bz = $b.assets | Where-Object { $_.name -like '*x86_64-pc-windows*.zip' } | Select-Object -First 1
+          Invoke-WebRequest $bz.browser_download_url -OutFile bore.zip
+          Expand-Archive bore.zip -DestinationPath bore-x -Force
+          Copy-Item (Get-ChildItem bore-x -Recurse -Filter bore.exe | Select-Object -First 1).FullName publish\redist\bore.exe
+          Invoke-WebRequest https://raw.githubusercontent.com/ekzhang/bore/main/LICENSE -OutFile publish\redist\bore-LICENSE.txt
+          "bore $($b.tag_name)" | Set-Content publish\redist\bore-VERSION.txt
           Get-ChildItem publish\redist | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
 
       - name: Engine self-test (real RDP / SSH / firewall / tunnels)

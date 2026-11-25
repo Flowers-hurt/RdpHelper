@@ -54,6 +54,8 @@ public static class GuiSelfTest
         var only = (Environment.GetEnvironmentVariable("RDPHELPER_GUI_PAGES") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
         var pages = only.Length == 0 ? Pages : Pages.Where(p => only.Contains(p.name)).ToArray();
 
+        if (only.Length == 0) failed += await WheelTestAsync(window, log);
+
         if (Environment.GetEnvironmentVariable("RDPHELPER_GUI_INSTALLTEST") == "1")
             failed += await InstallProgressTestAsync(window, outDir, log);
 
@@ -183,6 +185,45 @@ public static class GuiSelfTest
             log.AppendLine("FAIL SSH 安装进度切页保持：" + ex);
             return 1;
         }
+    }
+
+    /// <summary>
+    /// 复现「鼠标滚轮滚不动」：滚轮落在只读文本框（连接信息预览）、卡片文字等元素上时，整页都要能上下滚。
+    /// </summary>
+    private static async Task<int> WheelTestAsync(MainWindow window, StringBuilder log)
+    {
+        int failed = 0;
+        try
+        {
+            window.NavigateTo(typeof(RemotePage));
+            await Settle(5000);
+            var page = Find<RemotePage>(window) ?? throw new InvalidOperationException("找不到远程桌面页");
+            var sv = Find<System.Windows.Controls.ScrollViewer>(page) ?? throw new InvalidOperationException("页面没有 ScrollViewer");
+            foreach (var name in new[] { "PreviewBox", "MachineText", "PortBox" })
+            {
+                var el = (DependencyObject)page.FindName(name);
+                // 找到元素内部最深处（例如文本框里的 ScrollViewer），模拟鼠标正好停在那里
+                var target = Deepest(el);
+                sv.ScrollToVerticalOffset(name == "PreviewBox" ? sv.ScrollableHeight : 0);
+                sv.UpdateLayout();
+                double before = sv.VerticalOffset;
+                int delta = name == "PreviewBox" ? 120 : -120; // 预览框在页面底部：往上滚；其它往下滚
+                bool handled = WheelScroll.Simulate(window, target, delta);
+                sv.UpdateLayout();
+                bool ok = handled && Math.Abs(sv.VerticalOffset - before) > 10 && sv.ScrollableHeight > 0;
+                log.AppendLine($"{(ok ? "OK  " : "FAIL")} 滚轮落在 {name} 上整页可滚动：{before:0} → {sv.VerticalOffset:0}（可滚 {sv.ScrollableHeight:0}）");
+                if (!ok) failed++;
+            }
+        }
+        catch (Exception ex) { failed++; log.AppendLine("FAIL 滚轮测试：" + ex); }
+        return failed;
+    }
+
+    private static DependencyObject Deepest(DependencyObject d)
+    {
+        while (System.Windows.Media.VisualTreeHelper.GetChildrenCount(d) > 0)
+            d = System.Windows.Media.VisualTreeHelper.GetChild(d, 0);
+        return d;
     }
 
     private static T? Find<T>(DependencyObject root) where T : DependencyObject

@@ -178,8 +178,9 @@ public sealed partial class BoreProvider : TunnelProvider
     public override string Summary => L.T("开源极简 TCP 穿透（Rust），用公共服务器 bore.pub，免注册，对方直接用 mstsc 连接。");
     public override string Homepage => "https://github.com/ekzhang/bore";
     public override string ExeName => "bore.exe";
+    protected override string? BundledFileName => "bore.exe";
     public override string Notes =>
-        L.T("使用作者提供的公共中转 bore.pub，免费但不保证可用性和速度，适合临时应急。\n") +
+        L.T("组件已随安装包内置，无需下载。使用 bore 作者提供的公共中转 bore.pub（端口 7835），免费但不保证可用性和速度，适合临时应急。\n") +
         L.T("得到的 bore.pub:端口 任何人都能访问，请务必给 Windows 账户设置强密码，用完立即停止。");
 
     protected override Task<string> ResolveDownloadUrlAsync(HttpClient http, CancellationToken ct) =>
@@ -187,6 +188,11 @@ public sealed partial class BoreProvider : TunnelProvider
             n => n.Contains("x86_64-pc-windows", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".zip", StringComparison.OrdinalIgnoreCase), ct);
 
     protected override string BuildArgs(int port, RemoteKind target) => $"local {port} --to bore.pub";
+
+    protected override string? ExplainStartFailure(string tail) =>
+        tail.Contains("could not connect to bore.pub", StringComparison.OrdinalIgnoreCase)
+            ? L.T("连不上 bore.pub 公共服务器：本机网络拦截了它的 7835 端口，或服务器暂时不可用。可以换个网络（如手机热点）再试，或在「更多服务商」里改用 Cloudflare Tunnel。")
+            : null;
 
     [GeneratedRegex(@"listening at ([\w\.\-]+:\d+)")]
     private static partial Regex ListenRegex();

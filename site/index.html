@@ -477,7 +477,7 @@ const T = {
     "shots.sub": "跟随系统深浅色，支持亚克力 / 云母 / 云母 Alt 三种窗口材质。",
     "shots.caption": "截图由 CI 在真实 Windows 上运行程序后自动渲染，展示的都是真实状态。切换右上角的语言和主题，截图也会跟着变。",
     "tun.eyebrow": "内网穿透", "tun.title": "不在同一个网络，也能连",
-    "tun.sub": "穿透组件不随安装包分发，只在你点「下载组件」时从官方地址获取。默认推荐 bore，其余两家在「更多服务商」里。",
+    "tun.sub": "默认推荐的 bore 已随安装包内置，不用联网下载就能用；Cloudflare / ngrok 体积较大，在「更多服务商」里按需从官方地址下载。",
     "tun.h1": "服务商", "tun.h2": "注册", "tun.h3": "组件大小", "tun.h4": "对方怎么连",
     "trust.eyebrow": "可信", "trust.title": "开源、可审计、每次发布都经过真机测试",
     "dl.eyebrow": "下载", "dl.title": "免费下载 RdpHelper",
@@ -495,19 +495,19 @@ const T = {
       { ico: "desktop", t: "远程桌面", d: "开关、端口、身份验证，一处搞定。", li: ["一键开启 / 关闭，自动放行防火墙", "自定义端口、随机端口、恢复 3389", "网络级别身份验证（NLA）开关", "列出局域网 IP 并标出推荐地址"] },
       { ico: "terminal", t: "OpenSSH", d: "安装包自带微软官方 Win32-OpenSSH。", li: ["离线安装，十几秒装好，带进度条", "开启 sshd 并设为开机自启", "自定义端口 / 恢复 22", "公钥登录，可关闭密码登录"] },
       { ico: "shield", t: "访问控制", d: "用 Windows 防火墙限制谁能连进来。", li: ["IP 白名单：只允许名单内的地址", "IP 黑名单：优先拦截", "支持单 IP、IPv6、CIDR、范围", "远程桌面和 SSH 分别设置"] },
-      { ico: "globe", t: "内网穿透", d: "不在同一网络时一键拿到公网地址。", li: ["bore：免注册，组件约 1 MB", "Cloudflare Tunnel / ngrok 可选", "组件按需从官方地址下载", "退出程序时穿透进程一并结束"] },
+      { ico: "globe", t: "内网穿透", d: "不在同一网络时一键拿到公网地址。", li: ["bore：免注册，已随安装包内置", "Cloudflare Tunnel / ngrok 可选", "其余组件按需从官方地址下载", "退出程序时穿透进程一并结束"] },
       { ico: "person", t: "账户与密码", d: "空密码账户 Windows 会拒绝远程登录。", li: ["检测空密码和微软账户", "一键给当前账户设置密码", "创建远程专用账户，可禁用 / 删除", "拖入 .pub 文件添加 SSH 公钥"] },
       { ico: "tray", t: "托盘常驻", d: "关闭窗口后在后台运行，可在设置里改。", li: ["Win11 风格托盘面板，显示运行状态", "托盘里一键复制连接信息", "再次打开会唤醒已有窗口", "中英双语、浅色 / 深色主题"] }
     ],
     tabs: [["remote", "远程桌面"], ["ssh", "SSH"], ["access", "访问控制"], ["tunnel", "内网穿透"], ["accounts", "账户与密码"], ["settings", "设置"], ["about", "关于"]],
     tunnels: [
-      ["bore", "推荐", "免注册", "约 1 MB", "mstsc 连 <code>bore.pub:端口</code>"],
+      ["bore", "推荐", "免注册", "已内置", "mstsc 连 <code>bore.pub:端口</code>"],
       ["Cloudflare Tunnel", "", "免注册", "约 60 MB", "对方也用 RdpHelper 的「连接别人的电脑」"],
       ["ngrok", "", "需要账号 Authtoken", "约 30 MB", "mstsc 连 <code>x.tcp.ngrok.io:端口</code>"]
     ],
     trust: [
       ["33", "项真机自测", "每次构建都在 GitHub Actions 的 Windows 上真实开关远程桌面、改端口、装 SSH、跑穿透。"],
-      ["0", "内置穿透程序", "安装包里没有任何穿透组件，需要时才从官方地址下载，安装包干净可审计。"],
+      ["1", "个内置穿透组件", "只内置开源（MIT）、体积很小的 bore，附许可证；Cloudflare / ngrok 需要时才从官方地址下载。"],
       ["MIT", "开源许可", "全部源码公开，可以自由使用、修改和分发。"],
       ["0", "破解与绕过", "不修改系统文件，不做激活绕过，家庭版只提供微软正规的升级途径。"]
     ],
@@ -538,7 +538,7 @@ const T = {
     "shots.sub": "Follows your light / dark theme, with Acrylic, Mica and Mica Alt window materials.",
     "shots.caption": "Screenshots are rendered by CI from the real app running on Windows, showing real state. Switch language or theme at the top right and they follow.",
     "tun.eyebrow": "Tunneling", "tun.title": "Connect from anywhere",
-    "tun.sub": "Tunnel tools are not bundled; they are downloaded from the official source only when you click Download. bore is the default; the others are under More providers.",
+    "tun.sub": "bore, the default, ships with the installer, so there is nothing to download. Cloudflare / ngrok are larger and are downloaded from their official sources on demand under More providers.",
     "tun.h1": "Provider", "tun.h2": "Sign-up", "tun.h3": "Size", "tun.h4": "How they connect",
     "trust.eyebrow": "Trust", "trust.title": "Open source, auditable, tested on real Windows every release",
     "dl.eyebrow": "Download", "dl.title": "Get RdpHelper for free",
@@ -556,19 +556,19 @@ const T = {
       { ico: "desktop", t: "Remote Desktop", d: "Switch, port and authentication in one place.", li: ["Turn on / off with firewall rules handled", "Custom port, random port, reset to 3389", "Network Level Authentication toggle", "Lists LAN IPs and marks the best one"] },
       { ico: "terminal", t: "OpenSSH", d: "Microsoft's Win32-OpenSSH ships in the installer.", li: ["Offline install in seconds, with progress", "Starts sshd and enables it at boot", "Custom port / reset to 22", "Public key login, password login can be disabled"] },
       { ico: "shield", t: "Access control", d: "Use Windows Firewall to decide who gets in.", li: ["Allow list: only these addresses", "Deny list: always blocked first", "Single IP, IPv6, CIDR and ranges", "Separate lists for RDP and SSH"] },
-      { ico: "globe", t: "Tunneling", d: "Get a public address when you are not on the same network.", li: ["bore: no sign-up, about 1 MB", "Cloudflare Tunnel / ngrok optional", "Tools downloaded on demand from official sources", "Tunnels stop when the app exits"] },
+      { ico: "globe", t: "Tunneling", d: "Get a public address when you are not on the same network.", li: ["bore: no sign-up, bundled", "Cloudflare Tunnel / ngrok optional", "Other tools downloaded on demand from official sources", "Tunnels stop when the app exits"] },
       { ico: "person", t: "Accounts & passwords", d: "Windows refuses remote logins with a blank password.", li: ["Detects blank passwords and Microsoft accounts", "Set a password for the current account", "Create remote-only accounts, disable or delete them", "Drop a .pub file to add an SSH key"] },
       { ico: "tray", t: "System tray", d: "Keeps running in the background after you close it (configurable).", li: ["Windows 11 style tray panel with live status", "Copy connection info from the tray", "Launching again brings back the open window", "English / Chinese, light / dark themes"] }
     ],
     tabs: [["remote", "Remote Desktop"], ["ssh", "SSH"], ["access", "Access control"], ["tunnel", "Tunneling"], ["accounts", "Accounts"], ["settings", "Settings"], ["about", "About"]],
     tunnels: [
-      ["bore", "Recommended", "None", "~1 MB", "mstsc to <code>bore.pub:port</code>"],
+      ["bore", "Recommended", "None", "Bundled", "mstsc to <code>bore.pub:port</code>"],
       ["Cloudflare Tunnel", "", "None", "~60 MB", "The other side uses RdpHelper's “Visit another PC”"],
       ["ngrok", "", "Account Authtoken", "~30 MB", "mstsc to <code>x.tcp.ngrok.io:port</code>"]
     ],
     trust: [
       ["33", "real-machine self-tests", "Every build really toggles Remote Desktop, changes ports, installs SSH and opens tunnels on Windows in GitHub Actions."],
-      ["0", "bundled tunnel binaries", "Nothing is bundled; tunnel tools are fetched from official sources only when needed."],
+      ["1", "bundled tunnel client", "Only bore (open source, MIT, tiny) is bundled, with its license; Cloudflare / ngrok are fetched from official sources only when needed."],
       ["MIT", "license", "All source code is public. Use, modify and share it freely."],
       ["0", "hacks or bypasses", "No patched system files, no activation tricks. Home edition only gets Microsoft's official upgrade paths."]
     ],

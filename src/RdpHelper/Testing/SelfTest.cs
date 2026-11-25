@@ -264,6 +264,33 @@ public static class SelfTest
         {
             await Run("下载 cloudflared", () => InstallAndVersion(TunnelManager.Cloudflare));
             await Run("下载 ngrok", () => InstallAndVersion(TunnelManager.Ngrok));
+            await Run("内置 bore（不用联网下载即可使用）", async () =>
+            {
+                var b = TunnelManager.Bore;
+                Assert(b.IsBundled, "安装目录 redist 里没有内置的 bore.exe：" + b.BundledPath);
+                if (File.Exists(b.ExePath)) File.Delete(b.ExePath);
+                Assert(b.IsInstalled, "有内置 bore 时应视为已安装");
+                Assert(File.Exists(b.ExePath), "应把内置 bore 拷到组件目录");
+                var v = await b.GetVersionAsync();
+                Assert(v.Length > 0, "内置 bore 无法运行");
+                return $"{v} ({new FileInfo(b.BundledPath!).Length / 1024} KB)";
+            });
+            await Run("下载失败时给出可读原因", async () =>
+            {
+                // 127.0.0.1:1 没有服务监听 → 连接被拒绝，对应用户截图里的「由于目标计算机积极拒绝」
+                try
+                {
+                    using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                    await http.GetAsync("http://127.0.0.1:1/x");
+                    throw new Exception("预期连接失败");
+                }
+                catch (HttpRequestException ex)
+                {
+                    var msg = TunnelProvider.ExplainNetworkError(ex);
+                    Assert(msg.Contains("连接被拒绝") && msg.Contains("导入本地 exe"), "提示不对：" + msg);
+                    return msg;
+                }
+            });
             await Run("下载 bore", () => InstallAndVersion(TunnelManager.Bore));
 
             await Run("bore 穿透 RDP 端到端", async () =>
@@ -311,9 +338,24 @@ public static class SelfTest
             var text = RemoteInfo.Build(await SshService.IsRunningAsync());
             Assert(text.Contains(Environment.MachineName), "缺少计算机名");
             Assert(text.Contains("远程桌面"), "缺少远程桌面段落");
-            Assert(RemoteInfo.CopyToClipboard(text), "写剪贴板失败");
+            Assert(await RemoteInfo.CopyToClipboardAsync(text), "写剪贴板失败");
             Assert(System.Windows.Clipboard.GetText() == text, "剪贴板内容不一致");
             return text;
+        });
+
+        await Run("剪贴板被其他程序占用时仍能复制且不阻塞", async () =>
+        {
+            var hold = Win32Clipboard.HoldForTestAsync(800);
+            await Task.Delay(100); // 确保对方已经占住
+            var sw = Stopwatch.StartNew();
+            var copy = RemoteInfo.CopyToClipboardAsync("rdphelper-clipboard-test");
+            // 复制在等待期间必须把线程让出来（以前是 Thread.Sleep 硬等，界面「未响应」）
+            Assert(!copy.IsCompleted, "剪贴板被占用时复制应异步等待");
+            bool ok = await copy;
+            await hold;
+            Assert(ok, "占用解除后应复制成功");
+            Assert(System.Windows.Clipboard.GetText() == "rdphelper-clipboard-test", "剪贴板内容不一致");
+            return $"等待 {sw.ElapsedMilliseconds} ms 后成功";
         });
 
         await Run("英文界面文案（远程信息 + 译文覆盖）", async () =>

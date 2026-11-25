@@ -31,9 +31,9 @@ Windows 11 Settings look · Acrylic glass · Single self-contained exe
 
 Letting someone remote into a Windows PC usually means digging through Settings, fiddling with the firewall, editing the registry to change the port, looking up the IP — and finding a tunneling tool when you're not on the same network.
 
-**RdpHelper** wraps all of that into a small tool styled like Windows 11 Settings: **one toggle to enable Remote Desktop or SSH, one button to change / restore the port, one button to copy connection info for the other person**. When you need internet access, the default is **bore** (no account, ~1 MB client); advanced users can pick Cloudflare or ngrok under *More providers*. Clients are downloaded on demand and the public address is reported automatically.
+**RdpHelper** wraps all of that into a small tool styled like Windows 11 Settings: **one toggle to enable Remote Desktop or SSH, one button to change / restore the port, one button to copy connection info for the other person**. When you need internet access, the default is **bore** (no account, ~1 MB client); advanced users can pick Cloudflare or ngrok under *More providers*. bore ships with the installer so it works even when GitHub is unreachable; Cloudflare / ngrok are downloaded on demand, and the public address is reported automatically.
 
-The installer ships **no tunneling binaries**; they are fetched from their official sources only when you click *Download*.
+The installer bundles only **bore** (open source, MIT, tiny; license and version in `redist\`). Cloudflare / ngrok are not bundled and are fetched from their official sources only when you click *Download*.
 
 ## ✨ Features
 
@@ -87,7 +87,7 @@ Grab the latest build from [**Releases**](https://github.com/Flowers-hurt/RdpHel
 | `RdpHelper-Setup-x.y.z-x64.exe` | Installer; uninstall removes the app's firewall rules |
 | `RdpHelper-x.y.z-portable-x64.zip` | Portable single exe |
 
-Both are self-contained (~60 MB), no .NET runtime required, and bundle the official Win32-OpenSSH MSI (`redist\`, ~7 MB, license included) for offline SSH server installs. Tunnel clients are still downloaded on demand. Administrator rights are required (UAC prompt).
+Both are self-contained (~60 MB), no .NET runtime required, and bundle the official Win32-OpenSSH MSI (`redist\`, ~7 MB, license included) for offline SSH server installs. The bore tunnel client (MIT, license included) is bundled too; Cloudflare / ngrok are still downloaded on demand. Administrator rights are required (UAC prompt).
 
 ### 🧰 Requirements
 

@@ -12,6 +12,7 @@ public partial class MainWindow : FluentWindow
         InitializeComponent();
         App.ApplyAppearance(this);
         Notify.Init(SnackbarPresenter);
+        WheelScroll.Attach(this);
         // 打开时适配所在屏幕的工作区并居中（还没显示，不会闪）；显示后再按真实像素复核一次
         SourceInitialized += (_, _) => { if (AutoPlace) WindowFit.FitAndCenter(this); };
         ContentRendered += (_, _) => WindowFit.EnsureInside(this);

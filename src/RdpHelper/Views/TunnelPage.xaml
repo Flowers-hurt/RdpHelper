@@ -10,11 +10,11 @@
             <TextBlock Style="{StaticResource PageTitle}" Text="{l:T '内网穿透'}" />
 
             <ui:InfoBar
-                Title="{l:T '组件按需下载，不打进安装包'}"
+                Title="{l:T 'bore 已内置，其他组件按需下载'}"
                 Margin="0,0,0,4"
                 IsClosable="False"
                 IsOpen="True"
-                Message="{l:T '安装包里不带任何穿透程序。需要时选择一个服务商，点「下载组件」从官方地址获取；网络不好可手动下载后「导入本地 exe」。本程序退出时会自动结束穿透进程。'}"
+                Message="{l:T '安装包已内置 bore，连不上 GitHub 也能直接用。Cloudflare / ngrok 体积较大，需要时点「下载组件」从官方地址获取；网络不好可手动下载后「导入本地 exe」。本程序退出时会自动结束穿透进程。'}"
                 Severity="Informational" />
             <ui:InfoBar
                 Title="{l:T '安全提醒'}"

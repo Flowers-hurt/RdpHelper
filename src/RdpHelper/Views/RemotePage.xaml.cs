@@ -112,21 +112,21 @@ public partial class RemotePage : Page
         });
     }
 
-    private void Copy_Click(object sender, RoutedEventArgs e)
+    private async void Copy_Click(object sender, RoutedEventArgs e)
     {
-        if (RemoteInfo.CopyToClipboard(PreviewBox.Text))
+        if (await RemoteInfo.CopyToClipboardAsync(PreviewBox.Text))
             Notify.Success(L.T("已复制远程信息"), L.T("可以直接粘贴发给对方（不含密码）"));
         else
             Notify.Error(L.T("复制失败"), L.T("剪贴板被其他程序占用，请重试"));
     }
 
-    private void CopyIp_Click(object sender, RoutedEventArgs e)
+    private async void CopyIp_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: string ip })
         {
             int port = RdpService.GetPort();
             var text = port == RdpService.DefaultPort ? ip : $"{ip}:{port}";
-            if (RemoteInfo.CopyToClipboard(text)) Notify.Success(L.T("已复制"), text);
+            if (await RemoteInfo.CopyToClipboardAsync(text)) Notify.Success(L.T("已复制"), text);
         }
     }
 

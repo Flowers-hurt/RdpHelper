@@ -110,7 +110,7 @@ public partial class AboutPage : Page
     private void DownloadUpdate_Click(object sender, RoutedEventArgs e) => GitHubInfo.Open(_latest?.Url ?? GitHubInfo.ReleasesUrl);
 
     /// <summary>提 Issue 时附上的环境信息（不含用户名、IP 等隐私）。</summary>
-    private void CopyDiag_Click(object sender, RoutedEventArgs e)
+    private async void CopyDiag_Click(object sender, RoutedEventArgs e)
     {
         var ed = RdpService.GetEdition();
         var sb = new StringBuilder();
@@ -120,7 +120,7 @@ public partial class AboutPage : Page
         sb.AppendLine($"- UI language: {L.Lang} / system {System.Globalization.CultureInfo.InstalledUICulture.Name}");
         sb.AppendLine($"- Remote Desktop: {(RdpService.IsEnabled() ? "on" : "off")}, port {RdpService.GetPort()}, NLA {(RdpService.IsNlaEnabled() ? "on" : "off")}");
         sb.Append($"- OpenSSH installed: {SshService.IsInstalled}, port {SshService.GetPort()}");
-        if (RemoteInfo.CopyToClipboard(sb.ToString()))
+        if (await RemoteInfo.CopyToClipboardAsync(sb.ToString()))
             Notify.Success(L.T("已复制诊断信息"), L.T("粘贴到 Issue 的「环境信息」一栏即可（不含用户名和 IP）"));
     }
 

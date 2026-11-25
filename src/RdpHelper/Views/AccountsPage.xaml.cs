@@ -147,9 +147,9 @@ public partial class AccountsPage : Page
 
     private static string? TagOf(object sender) => (sender as FrameworkElement)?.Tag as string;
 
-    private void CopyLogin_Click(object sender, RoutedEventArgs e)
+    private async void CopyLogin_Click(object sender, RoutedEventArgs e)
     {
-        if (TagOf(sender) is { } n && RemoteInfo.CopyToClipboard(AccountService.MachinePrefix + n))
+        if (TagOf(sender) is { } n && await RemoteInfo.CopyToClipboardAsync(AccountService.MachinePrefix + n))
             Notify.Success(L.T("已复制"), AccountService.MachinePrefix + n);
     }
 
@@ -190,9 +190,9 @@ public partial class AccountsPage : Page
 
     // ---------- SSH 密钥 ----------
 
-    private void CopyKeygen_Click(object sender, RoutedEventArgs e)
+    private async void CopyKeygen_Click(object sender, RoutedEventArgs e)
     {
-        if (RemoteInfo.CopyToClipboard("ssh-keygen -t ed25519")) Notify.Success(L.T("已复制"), "ssh-keygen -t ed25519");
+        if (await RemoteInfo.CopyToClipboardAsync("ssh-keygen -t ed25519")) Notify.Success(L.T("已复制"), "ssh-keygen -t ed25519");
     }
 
     /// <summary>读取 .pub 文件内容回填到输入框（追加，可一次选多个）。公钥文件很小，超过 64 KB 的视为选错了文件。</summary>

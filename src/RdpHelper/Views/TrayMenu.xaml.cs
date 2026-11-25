@@ -115,7 +115,7 @@ public partial class TrayMenu : Window
     {
         bool ssh = false;
         try { ssh = SshService.IsInstalled && await SshService.IsRunningAsync(); } catch { }
-        bool ok = RemoteInfo.CopyToClipboard(RemoteInfo.Build(ssh));
+        bool ok = await RemoteInfo.CopyToClipboardAsync(RemoteInfo.Build(ssh));
         CopyIcon.Symbol = ok ? SymbolRegular.Checkmark24 : SymbolRegular.ErrorCircle24;
         CopyText.Text = ok ? L.T("已复制到剪贴板") : L.T("复制失败");
         await Task.Delay(900);
