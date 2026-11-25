@@ -66,13 +66,13 @@ public partial class AccountsPage : Page
         PasswordCardTitle.Text = _me.HasPassword == false ? L.T("设置登录密码") : L.T("修改登录密码");
         MicrosoftPasswordCard.Visibility = _me.Kind == AccountKind.Microsoft ? Visibility.Visible : Visibility.Collapsed;
 
-        LoadAccounts();
+        await LoadAccountsAsync();
         LoadKeys();
     }
 
-    private void LoadAccounts()
+    private async Task LoadAccountsAsync()
     {
-        var rows = AccountService.ListRemoteAccounts().Select(a => new RemoteAccountRow(a)).ToList();
+        var rows = (await Task.Run(AccountService.ListRemoteAccounts)).Select(a => new RemoteAccountRow(a)).ToList();
         RemoteAccountList.ItemsSource = rows;
         NoRemoteAccountText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }

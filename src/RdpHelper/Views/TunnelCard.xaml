@@ -145,6 +145,39 @@
                     Visibility="Collapsed" />
             </WrapPanel>
 
+            <!--  bore 连不上公共服务器时：一键改用别的服务商  -->
+            <Border
+                x:Name="FallbackPanel"
+                Margin="0,0,0,8"
+                Padding="12"
+                Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                CornerRadius="6"
+                Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Text="{l:T '这台电脑的网络连不上 bore.pub（已自动重试 3 次）'}" />
+                    <TextBlock
+                        Margin="0,4,0,8"
+                        Style="{StaticResource CardDesc}"
+                        Text="{l:T '通常是公司、学校或运营商网络拦截了 7835 端口，程序这边无法绕过。可以改用走 443 端口的 Cloudflare Tunnel（对方也要装 RdpHelper，在「连接别人的电脑」里粘贴地址），或换个网络（如手机热点）再试。'}" />
+                    <WrapPanel>
+                        <ui:Button
+                            Margin="0,0,8,0"
+                            Appearance="Primary"
+                            Click="Fallback_Click"
+                            Content="{l:T '改用 Cloudflare Tunnel'}"
+                            Icon="{ui:SymbolIcon Cloud24}" />
+                        <ui:Button
+                            Margin="0,0,8,0"
+                            Click="Start_Click"
+                            Content="{l:T '再试一次'}"
+                            Icon="{ui:SymbolIcon ArrowClockwise24}" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
             <Border
                 x:Name="AddressPanel"
                 Margin="0,0,0,8"

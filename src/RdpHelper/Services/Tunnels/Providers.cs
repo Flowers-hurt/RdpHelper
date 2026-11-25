@@ -194,6 +194,9 @@ public sealed partial class BoreProvider : TunnelProvider
             ? L.T("连不上 bore.pub 公共服务器：本机网络拦截了它的 7835 端口，或服务器暂时不可用。可以换个网络（如手机热点）再试，或在「更多服务商」里改用 Cloudflare Tunnel。")
             : null;
 
+    public override bool IsServerUnreachable(string message) =>
+        message.Contains("could not connect to bore.pub", StringComparison.OrdinalIgnoreCase);
+
     [GeneratedRegex(@"listening at ([\w\.\-]+:\d+)")]
     private static partial Regex ListenRegex();
 

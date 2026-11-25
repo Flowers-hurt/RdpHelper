@@ -13,8 +13,17 @@ public partial class TunnelPage : Page
     {
         InitializeComponent();
         // 默认只展示 bore（免注册、组件仅约 1 MB、对方直接用 mstsc），Cloudflare / ngrok 收在「更多服务商」里
-        CardsPanel.Children.Add(new TunnelCard(TunnelManager.Bore, SymbolRegular.PlugConnected24, recommended: true));
-        MoreCardsPanel.Children.Add(new TunnelCard(TunnelManager.Cloudflare, SymbolRegular.Cloud24));
+        var bore = new TunnelCard(TunnelManager.Bore, SymbolRegular.PlugConnected24, recommended: true);
+        var cloudflare = new TunnelCard(TunnelManager.Cloudflare, SymbolRegular.Cloud24);
+        CardsPanel.Children.Add(bore);
+        MoreCardsPanel.Children.Add(cloudflare);
+        // bore.pub 被网络拦截时一键改用 Cloudflare（走 443 端口，一般网络都放行）
+        bore.FallbackRequested += async () =>
+        {
+            MoreExpander.IsExpanded = true;
+            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Loaded);
+            await cloudflare.StartFromFallbackAsync(bore.TargetIndex);
+        };
         MoreCardsPanel.Children.Add(new TunnelCard(TunnelManager.Ngrok, SymbolRegular.Globe24));
         // 用过（已下载 / 正在运行）进阶服务商时自动展开，免得找不到
         MoreExpander.IsExpanded = TunnelManager.Cloudflare.IsInstalled || TunnelManager.Ngrok.IsInstalled

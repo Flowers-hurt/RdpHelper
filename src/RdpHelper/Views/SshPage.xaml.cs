@@ -89,7 +89,7 @@ public partial class SshPage : Page
         if (string.IsNullOrEmpty(PortBox.Text)) PortBox.Text = port.ToString();
         ConfigPathText.Text = L.F("配置文件：{0}", SshService.ConfigPath);
 
-        bool listening = running && RdpService.IsListening(port);
+        bool listening = running && await Task.Run(() => RdpService.IsListening(port));
         if (!installed)
         {
             StatusDot.Fill = RemotePage.Gray;

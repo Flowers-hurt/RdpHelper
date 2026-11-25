@@ -169,19 +169,69 @@ public partial class TunnelCard : UserControl
 
         StartBusy.Visibility = Visibility.Visible;
         StartButton.IsEnabled = false;
+        FallbackPanel.Visibility = Visibility.Collapsed;
         Expander.IsExpanded = true;
         try
         {
-            var addr = await _p.StartAsync(port, target);
-            Notify.Success(L.F("{0} 已连通", _p.Name), addr);
+            // 公共中转偶尔超时：连不上服务器时自动再试两次，仍不行再提示改用别的服务商
+            for (int attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    var addr = await _p.StartAsync(port, target);
+                    Notify.Success(L.F("{0} 已连通", _p.Name), addr);
+                    break;
+                }
+                catch (Exception ex) when (_p.IsServerUnreachable(ex.Message) && attempt < 3)
+                {
+                    AppendLog(L.F("连不上服务器，{0} 秒后自动重试（第 {1} 次）…", attempt * 2, attempt + 1));
+                    await Task.Delay(attempt * 2000);
+                }
+            }
         }
-        catch (Exception ex) { Notify.Error(L.F("{0} 启动失败", _p.Name), ex.Message); }
+        catch (Exception ex)
+        {
+            if (_p.IsServerUnreachable(ex.Message) && FallbackRequested != null)
+                FallbackPanel.Visibility = Visibility.Visible;
+            Notify.Error(L.F("{0} 启动失败", _p.Name), ex.Message);
+        }
         finally
         {
             StartBusy.Visibility = Visibility.Collapsed;
             UpdateState();
         }
     }
+
+    /// <summary>bore 连不上时「改用 Cloudflare」：由所在页面决定切到哪张卡片。</summary>
+    public event Action? FallbackRequested;
+
+    private void Fallback_Click(object sender, RoutedEventArgs e)
+    {
+        FallbackPanel.Visibility = Visibility.Collapsed;
+        FallbackRequested?.Invoke();
+    }
+
+    /// <summary>从别的卡片切过来：展开、没下载就先下载，再按同样的目标（远程桌面 / SSH）启动。</summary>
+    public async Task StartFromFallbackAsync(int targetIndex)
+    {
+        Expander.IsExpanded = true;
+        TargetBox.SelectedIndex = targetIndex;
+        BringIntoView();
+        if (_p.IsRunning) return;
+        if (!_p.IsInstalled)
+        {
+            Notify.Info(L.F("正在下载 {0} 组件…", _p.Name));
+            try { await _p.InstallAsync(null); }
+            catch (Exception ex)
+            {
+                Notify.Error(L.T("下载失败"), ex.Message + "\n" + L.T("网络不好时可以手动下载后点「导入本地 exe」。"));
+                return;
+            }
+        }
+        Start_Click(this, new RoutedEventArgs());
+    }
+
+    public int TargetIndex => TargetBox.SelectedIndex;
 
     private void Stop_Click(object sender, RoutedEventArgs e)
     {

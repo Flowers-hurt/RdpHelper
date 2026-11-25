@@ -188,6 +188,9 @@ public abstract partial class TunnelProvider
     /// <summary>根据进程最后几行输出给出人能看懂的失败原因；null 表示没有特别说明。</summary>
     protected virtual string? ExplainStartFailure(string tail) => null;
 
+    /// <summary>启动失败是否因为连不上服务商的服务器（网络问题，可重试 / 改用别的服务商）。</summary>
+    public virtual bool IsServerUnreachable(string message) => false;
+
     /// <summary>从一行输出中解析公网地址；解析不到返回 null。</summary>
     protected abstract string? ParseAddress(string line);
 

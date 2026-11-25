@@ -54,6 +54,7 @@ public static class GuiSelfTest
         var only = (Environment.GetEnvironmentVariable("RDPHELPER_GUI_PAGES") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
         var pages = only.Length == 0 ? Pages : Pages.Where(p => only.Contains(p.name)).ToArray();
 
+        if (only.Length == 0) failed += await NavSpeedTestAsync(window, log);
         if (only.Length == 0) failed += await WheelTestAsync(window, log);
 
         if (Environment.GetEnvironmentVariable("RDPHELPER_GUI_INSTALLTEST") == "1")
@@ -190,6 +191,76 @@ public static class GuiSelfTest
     /// <summary>
     /// 复现「鼠标滚轮滚不动」：滚轮落在只读文本框（连接信息预览）、卡片文字等元素上时，整页都要能上下滚。
     /// </summary>
+    /// <summary>
+    /// 快速连点左侧导航：页面要被缓存（第二次切换不重建），切页不能有过渡动画（动画期间文字会发虚），
+    /// UI 线程不能被长时间卡住。后台线程每 15 ms 往 UI 线程投一个空操作，记录最长等待时间。
+    /// </summary>
+    private static async Task<int> NavSpeedTestAsync(MainWindow window, StringBuilder log)
+    {
+        int failed = 0;
+        try
+        {
+            var nav = Find<NavigationView>(window) ?? throw new InvalidOperationException("找不到 NavigationView");
+            bool noAnim = nav.Transition == Wpf.Ui.Animations.Transition.None;
+            log.AppendLine($"{(noAnim ? "OK  " : "FAIL")} 切页无过渡动画（Transition={nav.Transition}）");
+            if (!noAnim) failed++;
+
+            var instances = new Dictionary<Type, object?>();
+            for (int round = 0; round < 3; round++)
+            {
+                double maxStall = 0, maxNav = 0;
+                using var cts = new CancellationTokenSource();
+                var disp = window.Dispatcher;
+                var probe = Task.Run(async () =>
+                {
+                    var sw = new System.Diagnostics.Stopwatch();
+                    while (!cts.IsCancellationRequested)
+                    {
+                        sw.Restart();
+                        await disp.InvokeAsync(() => { }, DispatcherPriority.Input);
+                        maxStall = Math.Max(maxStall, sw.Elapsed.TotalMilliseconds);
+                        await Task.Delay(15);
+                    }
+                });
+                var reused = new List<string>();
+                foreach (var (page, name) in Pages)
+                {
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+                    window.NavigateTo(page);
+                    await Dispatcher.Yield(DispatcherPriority.Render);
+                    maxNav = Math.Max(maxNav, sw.Elapsed.TotalMilliseconds);
+                    var cur = FindPage(window, page);
+                    if (round > 0 && cur != null && instances.TryGetValue(page, out var prev) && ReferenceEquals(prev, cur)) reused.Add(name);
+                    if (round == 0) instances[page] = cur;
+                    await Task.Delay(120); // 模拟用户快速连点
+                }
+                await Settle(600);
+                cts.Cancel();
+                await probe;
+                string label = round == 0 ? "首次打开各页" : $"第 {round + 1} 轮快速切换";
+                if (round == 0)
+                    log.AppendLine($"     {label}：单次切页最长 {maxNav:0} ms，UI 线程最长卡顿 {maxStall:0} ms");
+                else
+                {
+                    bool cached = reused.Count == Pages.Length;
+                    bool smooth = maxStall < 250;
+                    log.AppendLine($"{(cached && smooth ? "OK  " : "FAIL")} {label}：单次切页最长 {maxNav:0} ms，UI 线程最长卡顿 {maxStall:0} ms，复用缓存页面 {reused.Count}/{Pages.Length}");
+                    if (!cached || !smooth) failed++;
+                }
+            }
+        }
+        catch (Exception ex) { failed++; log.AppendLine("FAIL 切页速度测试：" + ex); }
+        return failed;
+    }
+
+    private static FrameworkElement? FindPage(DependencyObject root, Type t)
+    {
+        if (root.GetType() == t) return root as FrameworkElement;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            if (FindPage(VisualTreeHelper.GetChild(root, i), t) is { } r) return r;
+        return null;
+    }
+
     private static async Task<int> WheelTestAsync(MainWindow window, StringBuilder log)
     {
         int failed = 0;

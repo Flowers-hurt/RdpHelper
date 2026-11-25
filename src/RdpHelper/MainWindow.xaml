@@ -14,7 +14,9 @@
     WindowBackdropType="Acrylic"
     WindowCornerPreference="Round"
     WindowStartupLocation="Manual"
-    Icon="pack://application:,,,/Assets/app.png">
+    Icon="pack://application:,,,/Assets/app.png"
+    UseLayoutRounding="True"
+    TextOptions.TextHintingMode="Fixed">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -33,37 +35,45 @@
             IsBackButtonVisible="Collapsed"
             IsPaneToggleVisible="True"
             OpenPaneLength="232"
-            PaneDisplayMode="Left">
+            PaneDisplayMode="Left"
+            Transition="None">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem
                     Content="{l:T '远程桌面'}"
                     Icon="{ui:SymbolIcon Desktop24}"
+                    NavigationCacheMode="Enabled"
                     TargetPageType="{x:Type views:RemotePage}" />
                 <ui:NavigationViewItem
                     Content="SSH"
                     Icon="{ui:SymbolIcon WindowConsole20}"
+                    NavigationCacheMode="Enabled"
                     TargetPageType="{x:Type views:SshPage}" />
                 <ui:NavigationViewItem
                     Content="{l:T '访问控制'}"
                     Icon="{ui:SymbolIcon ShieldKeyhole24}"
+                    NavigationCacheMode="Enabled"
                     TargetPageType="{x:Type views:AccessPage}" />
                 <ui:NavigationViewItem
                     Content="{l:T '账户与密码'}"
                     Icon="{ui:SymbolIcon Person24}"
+                    NavigationCacheMode="Enabled"
                     TargetPageType="{x:Type views:AccountsPage}" />
                 <ui:NavigationViewItem
                     Content="{l:T '内网穿透'}"
                     Icon="{ui:SymbolIcon Globe24}"
+                    NavigationCacheMode="Enabled"
                     TargetPageType="{x:Type views:TunnelPage}" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem
                     Content="{l:T '设置'}"
                     Icon="{ui:SymbolIcon Settings24}"
+                    NavigationCacheMode="Enabled"
                     TargetPageType="{x:Type views:SettingsPage}" />
                 <ui:NavigationViewItem
                     Content="{l:T '关于'}"
                     Icon="{ui:SymbolIcon Info24}"
+                    NavigationCacheMode="Enabled"
                     TargetPageType="{x:Type views:AboutPage}" />
             </ui:NavigationView.FooterMenuItems>
             <ui:NavigationView.ContentOverlay>
