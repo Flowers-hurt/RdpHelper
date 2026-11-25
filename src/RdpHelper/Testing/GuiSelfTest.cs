@@ -198,7 +198,12 @@ public static class GuiSelfTest
             window.NavigateTo(typeof(RemotePage));
             await Settle(5000);
             var page = Find<RemotePage>(window) ?? throw new InvalidOperationException("找不到远程桌面页");
-            var sv = Find<System.Windows.Controls.ScrollViewer>(page) ?? throw new InvalidOperationException("页面没有 ScrollViewer");
+            // 列出从页面往外的所有 ScrollViewer：WPF-UI 导航框架外层还有一个，页面自己的那层高度不受限、滚不动却会吞掉滚轮
+            var chain = new List<System.Windows.Controls.ScrollViewer>();
+            for (DependencyObject? d = Find<System.Windows.Controls.ScrollViewer>(page); d != null; d = VisualTreeHelper.GetParent(d))
+                if (d is System.Windows.Controls.ScrollViewer x) chain.Add(x);
+            log.AppendLine("     滚动层：" + string.Join(" → ", chain.Select(x => $"{x.GetType().Name}(可滚 {x.ScrollableHeight:0}, 视口 {x.ViewportHeight:0})")));
+            var sv = chain.FirstOrDefault(x => x.ScrollableHeight > 0) ?? throw new InvalidOperationException("没有可滚动的 ScrollViewer（窗口太高？）");
             foreach (var name in new[] { "PreviewBox", "MachineText", "PortBox" })
             {
                 var el = (DependencyObject)page.FindName(name);
