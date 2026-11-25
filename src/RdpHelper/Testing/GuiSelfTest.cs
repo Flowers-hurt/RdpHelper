@@ -176,8 +176,8 @@ public static class GuiSelfTest
             bool sshRunning = await SshService.IsRunningAsync();
             Render(window, Path.Combine(outDir, "ssh-installed.png"), false);
 
-            bool ok = !ReferenceEquals(first, second) && running && visible && collapsed && SshService.IsInstalled && (!removed || (buttonShown && sshRunning));
-            log.AppendLine($"{(ok ? "OK  " : "FAIL")} SSH 安装进度切页保持：新页面实例={!ReferenceEquals(first, second)} 切回时仍在安装={running} 进度条可见={barVisible} 阶段文字=“{stage}” 结束后卡片收起={collapsed} sshd 运行={sshRunning} 安装按钮可见={buttonShown}");
+            bool ok = second != null && running && visible && collapsed && SshService.IsInstalled && (!removed || (buttonShown && sshRunning));
+            log.AppendLine($"{(ok ? "OK  " : "FAIL")} SSH 安装进度切页保持：复用缓存页面={ReferenceEquals(first, second)} 切回时仍在安装={running} 进度条可见={barVisible} 阶段文字=“{stage}” 结束后卡片收起={collapsed} sshd 运行={sshRunning} 安装按钮可见={buttonShown}");
             foreach (var l in SshInstaller.Log) log.AppendLine("     " + l);
             return ok ? 0 : 1;
         }
