@@ -13,7 +13,9 @@ public sealed partial class CloudflareProvider : TunnelProvider
     public override string Summary => L.T("免注册、完全免费，走 Cloudflare 全球网络，不暴露端口。访问方需同样运行 cloudflared（或本程序）。");
     public override string Homepage => "https://github.com/cloudflare/cloudflared";
     public override string ExeName => "cloudflared.exe";
+    protected override string? BundledFileName => "cloudflared.exe";
     public override string Notes =>
+        L.T("组件已随安装包内置，无需下载。走 443 端口，bore 连不上时一般也能用。\n") +
         L.T("使用 TryCloudflare 临时隧道，每次启动会分配一个随机的 *.trycloudflare.com 域名，关闭即失效。\n") +
         L.T("RDP 是 TCP 协议，访问方不能直接用 mstsc 连这个域名，需要先在自己电脑上运行 cloudflared 做本地转发——") +
         L.T("如果对方也装了 RdpHelper，在「内网穿透 → 连接别人的电脑」里粘贴地址即可一键连接。");

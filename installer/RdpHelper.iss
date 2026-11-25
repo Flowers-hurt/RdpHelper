@@ -1,9 +1,9 @@
 ; Inno Setup 安装脚本 —— 由 GitHub Actions 调用：ISCC /DAppVersion=x.y.z installer\RdpHelper.iss
 ; 安装包包含主程序 + 微软官方 Win32-OpenSSH 安装包（redist，用于离线安装 SSH 服务器）；
-; 不包含任何内网穿透组件（cloudflared / ngrok / bore 在程序内按需下载）。
+; 另内置 bore（MIT）和 cloudflared（Apache-2.0）穿透客户端，均附许可证；ngrok 在程序内按需下载。
 
 #ifndef AppVersion
-  #define AppVersion "1.2.6"
+  #define AppVersion "1.2.7"
 #endif
 #define AppName "RdpHelper"
 #define AppDisplayName "RdpHelper 远程桌面助手"

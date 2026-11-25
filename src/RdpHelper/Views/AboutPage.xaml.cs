@@ -34,8 +34,8 @@ public partial class AboutPage : Page
             new("WPF-UI", "MIT", L.T("Fluent 界面控件库（导航、卡片、毛玻璃窗口）"), "https://github.com/lepoco/wpfui"),
             new(".NET", "MIT", L.T("运行时与 WPF 框架（已内置在程序中）"), "https://github.com/dotnet/runtime"),
             new("Win32-OpenSSH", "OpenSSH License (BSD)", L.T("SSH 服务器，随安装包分发（redist 目录，附许可证）"), "https://github.com/PowerShell/Win32-OpenSSH"),
-            new("cloudflared", "Apache-2.0", L.T("Cloudflare 隧道客户端，按需从官方下载"), "https://github.com/cloudflare/cloudflared"),
-            new("bore", "MIT", L.T("极简 TCP 穿透客户端，按需从官方下载"), "https://github.com/ekzhang/bore"),
+            new("cloudflared", "Apache-2.0", L.T("Cloudflare 隧道客户端，随安装包分发（redist 目录，附许可证）"), "https://github.com/cloudflare/cloudflared"),
+            new("bore", "MIT", L.T("极简 TCP 穿透客户端，随安装包分发（redist 目录，附许可证）"), "https://github.com/ekzhang/bore"),
             new("ngrok", L.T("专有软件"), L.T("ngrok 客户端，按需从官方下载，使用需遵守 ngrok 服务条款"), "https://ngrok.com"),
         };
         ThirdPartyList.ItemsSource = parts;

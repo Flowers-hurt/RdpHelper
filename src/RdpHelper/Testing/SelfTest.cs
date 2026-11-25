@@ -264,17 +264,19 @@ public static class SelfTest
         {
             await Run("下载 cloudflared", () => InstallAndVersion(TunnelManager.Cloudflare));
             await Run("下载 ngrok", () => InstallAndVersion(TunnelManager.Ngrok));
-            await Run("内置 bore（不用联网下载即可使用）", async () =>
+            foreach (var b in new TunnelProvider[] { TunnelManager.Bore, TunnelManager.Cloudflare })
             {
-                var b = TunnelManager.Bore;
-                Assert(b.IsBundled, "安装目录 redist 里没有内置的 bore.exe：" + b.BundledPath);
-                if (File.Exists(b.ExePath)) File.Delete(b.ExePath);
-                Assert(b.IsInstalled, "有内置 bore 时应视为已安装");
-                Assert(File.Exists(b.ExePath), "应把内置 bore 拷到组件目录");
-                var v = await b.GetVersionAsync();
-                Assert(v.Length > 0, "内置 bore 无法运行");
-                return $"{v} ({new FileInfo(b.BundledPath!).Length / 1024} KB)";
-            });
+                await Run($"内置 {b.Id}（不用联网下载即可使用）", async () =>
+                {
+                    Assert(b.IsBundled, $"安装目录 redist 里没有内置的 {b.ExeName}：" + b.BundledPath);
+                    if (File.Exists(b.ExePath)) File.Delete(b.ExePath);
+                    Assert(b.IsInstalled, "有内置组件时应视为已安装");
+                    Assert(File.Exists(b.ExePath), "应把内置组件拷到组件目录");
+                    var v = await b.GetVersionAsync();
+                    Assert(v.Length > 0, "内置组件无法运行");
+                    return $"{v} ({new FileInfo(b.BundledPath!).Length / 1024} KB)";
+                });
+            }
             await Run("下载失败时给出可读原因", async () =>
             {
                 // 127.0.0.1:1 没有服务监听 → 连接被拒绝，对应用户截图里的「由于目标计算机积极拒绝」

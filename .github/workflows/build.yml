@@ -61,6 +61,12 @@ jobs:
           Copy-Item (Get-ChildItem bore-x -Recurse -Filter bore.exe | Select-Object -First 1).FullName publish\redist\bore.exe
           Invoke-WebRequest https://raw.githubusercontent.com/ekzhang/bore/main/LICENSE -OutFile publish\redist\bore-LICENSE.txt
           "bore $($b.tag_name)" | Set-Content publish\redist\bore-VERSION.txt
+          # cloudflared（Apache-2.0）也内置：bore.pub 的 7835 端口被拦截时改用 Cloudflare（走 443），这时往往也连不上 GitHub 下载
+          $c = Invoke-RestMethod https://api.github.com/repos/cloudflare/cloudflared/releases/latest -Headers @{ Authorization = "Bearer ${{ github.token }}" }
+          $ca = $c.assets | Where-Object { $_.name -eq 'cloudflared-windows-amd64.exe' } | Select-Object -First 1
+          Invoke-WebRequest $ca.browser_download_url -OutFile publish\redist\cloudflared.exe
+          Invoke-WebRequest https://raw.githubusercontent.com/cloudflare/cloudflared/master/LICENSE -OutFile publish\redist\cloudflared-LICENSE.txt
+          "cloudflared $($c.tag_name)" | Set-Content publish\redist\cloudflared-VERSION.txt
           Get-ChildItem publish\redist | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
 
       - name: Engine self-test (real RDP / SSH / firewall / tunnels)

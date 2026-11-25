@@ -10,11 +10,11 @@
             <TextBlock Style="{StaticResource PageTitle}" Text="{l:T '内网穿透'}" />
 
             <ui:InfoBar
-                Title="{l:T 'bore 已内置，其他组件按需下载'}"
+                Title="{l:T 'bore 和 Cloudflare 已内置，ngrok 按需下载'}"
                 Margin="0,0,0,4"
                 IsClosable="False"
                 IsOpen="True"
-                Message="{l:T '安装包已内置 bore，连不上 GitHub 也能直接用。Cloudflare / ngrok 体积较大，需要时点「下载组件」从官方地址获取；网络不好可手动下载后「导入本地 exe」。本程序退出时会自动结束穿透进程。'}"
+                Message="{l:T '安装包已内置 bore 和 Cloudflare 的组件，连不上 GitHub 也能直接用。ngrok 需要时点「下载组件」从官方地址获取；网络不好可手动下载后「导入本地 exe」。本程序退出时会自动结束穿透进程。'}"
                 Severity="Informational" />
             <ui:InfoBar
                 Title="{l:T '安全提醒'}"
@@ -32,7 +32,7 @@
                 <Expander.Header>
                     <StackPanel>
                         <TextBlock Style="{StaticResource CardTitle}" Text="{l:T '更多服务商（Cloudflare、ngrok）'}" />
-                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T '适合进阶用户：Cloudflare 访问方也要运行客户端，ngrok 需要注册账号；国内网络下载这两个组件可能较慢。'}" />
+                        <TextBlock Style="{StaticResource CardDesc}" Text="{l:T 'bore 连不上时用：Cloudflare 已内置、走 443 端口，访问方也要运行客户端；ngrok 需要注册账号并下载组件。'}" />
                     </StackPanel>
                 </Expander.Header>
                 <StackPanel Margin="0,8,0,0">
