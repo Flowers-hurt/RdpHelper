@@ -31,7 +31,7 @@ public partial class TrayMenu : Window
         Loaded += (_, _) => { SetForegroundWindow(new WindowInteropHelper(this).Handle); Activate(); OpenRow.Focus(); };
         // DWM 亚克力 + 透明合成时，WPF 偶尔只呈现了局部脏区（CI 上截到过只画出一行的空白菜单）。
         // 首帧后和状态异步刷新后各请求一次整窗重绘，保证内容完整。
-        ContentRendered += (_, _) => { ForceRedraw(); Dispatcher.BeginInvoke(ForceRedraw, System.Windows.Threading.DispatcherPriority.Background); };
+        ContentRendered += (_, _) => { ForceRedraw(); Dispatcher.InvokeAsync(ForceRedraw, System.Windows.Threading.DispatcherPriority.Background); };
         Deactivated += (_, _) => SafeClose();
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) SafeClose(); };
         FillStatus();
