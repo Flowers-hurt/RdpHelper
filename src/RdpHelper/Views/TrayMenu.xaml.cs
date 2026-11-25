@@ -29,6 +29,9 @@ public partial class TrayMenu : Window
         // 之前先放屏幕外再移过来，偶尔移动后只重绘了一部分，菜单大片空白。
         SourceInitialized += (_, _) => { ApplyChrome(); PlaceNearAnchor(); };
         Loaded += (_, _) => { SetForegroundWindow(new WindowInteropHelper(this).Handle); Activate(); OpenRow.Focus(); };
+        // DWM 亚克力 + 透明合成时，WPF 偶尔只呈现了局部脏区（CI 上截到过只画出一行的空白菜单）。
+        // 首帧后和状态异步刷新后各请求一次整窗重绘，保证内容完整。
+        ContentRendered += (_, _) => { ForceRedraw(); Dispatcher.BeginInvoke(ForceRedraw, System.Windows.Threading.DispatcherPriority.Background); };
         Deactivated += (_, _) => SafeClose();
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) SafeClose(); };
         FillStatus();
@@ -79,6 +82,15 @@ public partial class TrayMenu : Window
         SshDot.Fill = ssh ? on : off;
         SshText.Text = ssh ? L.F("运行中 · 端口 {0}", SafePort(SshService.GetPort))
             : SshService.IsInstalled ? L.T("未开启") : L.T("未安装");
+        ForceRedraw();
+    }
+
+    private void ForceRedraw()
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+        Root.InvalidateVisual();
+        RedrawWindow(hwnd, IntPtr.Zero, IntPtr.Zero, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW);
     }
 
     private static string SafePort(Func<int> get)
@@ -191,6 +203,8 @@ public partial class TrayMenu : Window
     [StructLayout(LayoutKind.Sequential)]
     private struct MONITORINFO { public int cbSize; public RECT rcMonitor, rcWork; public uint dwFlags; }
 
+    private const uint RDW_INVALIDATE = 0x1, RDW_ERASE = 0x4, RDW_ALLCHILDREN = 0x80, RDW_UPDATENOW = 0x100, RDW_FRAME = 0x400;
+    [DllImport("user32.dll")] private static extern bool RedrawWindow(IntPtr hWnd, IntPtr rect, IntPtr rgn, uint flags);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT p);
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromPoint(POINT pt, uint flags);
     [DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr mon, ref MONITORINFO mi);
