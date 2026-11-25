@@ -25,11 +25,10 @@ public partial class TrayMenu : Window
         _anchor = anchor;
         InitializeComponent();
         SubtitleText.Text = L.F("版本 {0}", AppPaths.Version);
-        // 先放到屏幕外，量好真实像素尺寸后再贴到鼠标旁边，避免闪一下
-        Left = -32000;
-        Top = -32000;
-        SourceInitialized += (_, _) => ApplyChrome();
-        Loaded += (_, _) => { PlaceNearAnchor(); Activate(); OpenRow.Focus(); };
+        // 显示前（SourceInitialized：窗口句柄已建、还没画）就量好尺寸并贴到鼠标旁边，第一次绘制就在最终位置。
+        // 之前先放屏幕外再移过来，偶尔移动后只重绘了一部分，菜单大片空白。
+        SourceInitialized += (_, _) => { ApplyChrome(); PlaceNearAnchor(); };
+        Loaded += (_, _) => { SetForegroundWindow(new WindowInteropHelper(this).Handle); Activate(); OpenRow.Focus(); };
         Deactivated += (_, _) => SafeClose();
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) SafeClose(); };
         FillStatus();
@@ -165,7 +164,8 @@ public partial class TrayMenu : Window
         var wa = mi.rcWork;
         GetDpiForMonitor(mon, 0, out uint dpiX, out uint dpiY);
         double sx = dpiX / 96.0, sy = dpiY / 96.0;
-        int w = (int)Math.Ceiling(ActualWidth * sx), h = (int)Math.Ceiling(ActualHeight * sy);
+        Measure(new Size(Width, double.PositiveInfinity));
+        int w = (int)Math.Ceiling(Width * sx), h = (int)Math.Ceiling(DesiredSize.Height * sy);
         const int gap = 8;
 
         // 默认在鼠标左上方（任务栏在底部时最自然）；放不下就翻到另一侧
@@ -176,7 +176,6 @@ public partial class TrayMenu : Window
         x = Math.Clamp(x, wa.Left + gap, Math.Max(wa.Left + gap, wa.Right - w - gap));
         y = Math.Clamp(y, wa.Top + gap, Math.Max(wa.Top + gap, wa.Bottom - h - gap));
         SetWindowPos(hwnd, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
-        SetForegroundWindow(hwnd);
     }
 
     // ---------- Win32 ----------

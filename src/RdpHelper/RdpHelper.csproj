@@ -13,7 +13,7 @@
     <RootNamespace>RdpHelper</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>1.2.3</Version>
+    <Version>1.2.4</Version>
     <Product>RdpHelper 远程桌面助手</Product>
     <Description>一键开启 Windows 远程桌面、修改端口、按需内网穿透</Description>
     <Copyright>MIT License</Copyright>
